@@ -32,6 +32,18 @@ use crate::http::create_http_client_with_proxies;
 use crate::output::TmanOutput;
 use crate::{config::TmanConfig, registry::found_result::PkgRegistryInfo};
 
+/// Checks if a package requires admin token authorization based on its tags.
+///
+/// Returns true if the package has any tag starting with "ten:".
+fn requires_admin_token_based_on_tags(pkg_info: &PkgInfo) -> bool {
+    pkg_info
+        .manifest
+        .tags
+        .as_ref()
+        .map(|tags| tags.iter().any(|tag| tag.starts_with("ten:")))
+        .unwrap_or(false)
+}
+
 async fn retry_async<'a, F, T>(
     tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     max_retries: u32,
@@ -123,6 +135,7 @@ async fn get_package_upload_info(
                     hash: pkg_info.hash.clone(),
                     download_url: String::new(),
                     content_format: Some("gzip".to_string()),
+                    tags: pkg_info.manifest.tags.clone(),
                 });
 
                 if is_verbose(tman_config.clone()).await {
@@ -134,23 +147,49 @@ async fn get_package_upload_info(
 
                 let mut headers = HeaderMap::new();
 
-                if let Some(user_token) = &tman_config.read().await.user_token {
-                    let basic_token = format!("Basic {}", user_token);
-                    headers.insert(
-                        AUTHORIZATION,
-                        basic_token.parse().map_err(|e| {
-                            out.error_line(&format!(
-                                "Failed to parse authorization token: {}",
+                // Check if the package requires admin token based on its tags.
+                let requires_admin = requires_admin_token_based_on_tags(&pkg_info);
+
+                if requires_admin {
+                    // If a tag starts with "ten:", we must use admin_token.
+                    if let Some(admin_token) = &tman_config.read().await.admin_token {
+                        let basic_token = format!("Basic {}", admin_token);
+                        headers.insert(
+                            AUTHORIZATION,
+                            basic_token.parse().map_err(|e| {
+                                out.error_line(&format!(
+                                    "Failed to parse authorization token: {}",
+                                    e
+                                ));
                                 e
-                            ));
-                            e
-                        })?,
-                    );
-                } else {
-                    if is_verbose(tman_config.clone()).await {
-                        out.normal_line("Authorization token is missing");
+                            })?,
+                        );
+                    } else {
+                        if is_verbose(tman_config.clone()).await {
+                            out.normal_line("Admin token is required for packages with 'ten:' tags but is missing");
+                        }
+                        return Err(anyhow!("Admin token is required for packages with 'ten:' tags but is missing"));
                     }
-                    return Err(anyhow!("Authorization token is missing"));
+                } else {
+                    // Use user_token as before for regular packages.
+                    if let Some(user_token) = &tman_config.read().await.user_token {
+                        let basic_token = format!("Basic {}", user_token);
+                        headers.insert(
+                            AUTHORIZATION,
+                            basic_token.parse().map_err(|e| {
+                                out.error_line(&format!(
+                                    "Failed to parse authorization token: {}",
+                                    e
+                                ));
+                                e
+                            })?,
+                        );
+                    } else {
+                        if is_verbose(tman_config.clone()).await {
+                            out.normal_line("Authorization token is missing");
+                        }
+                        return Err(anyhow!("Authorization token is missing"));
+                    }
                 }
 
                 let response = client

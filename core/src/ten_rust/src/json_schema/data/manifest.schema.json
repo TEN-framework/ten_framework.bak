@@ -426,6 +426,13 @@
     "version": {
       "$ref": "#/$defs/version"
     },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(ten:)?[A-Za-z_][A-Za-z0-9_]*$"
+      }
+    },
     "dependencies": {
       "$ref": "#/$defs/dependencies"
     },

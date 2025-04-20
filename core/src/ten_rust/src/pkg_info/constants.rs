@@ -17,3 +17,4 @@ pub const ADDON_LOADER_DIR: &str = "addon_loader";
 pub const SYSTEM_DIR: &str = "system";
 
 pub const TEN_STR_PREDEFINED_GRAPHS: &str = "predefined_graphs";
+pub const TEN_STR_TAGS: &str = "tags";
