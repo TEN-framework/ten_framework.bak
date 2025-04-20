@@ -11,11 +11,12 @@ use anyhow::Result;
 use console::Emoji;
 use ten_manager::cmd::execute_cmd;
 use ten_manager::config::metadata::TmanMetadata;
+use ten_manager::output::cli::TmanOutputCli;
 use tokio::runtime::Runtime;
 
 use ten_manager::cmd_line;
 use ten_manager::constants::GITHUB_RELEASE_PAGE;
-use ten_manager::output::{TmanOutput, TmanOutputCli};
+use ten_manager::output::TmanOutput;
 use ten_manager::version::VERSION;
 use ten_manager::version_utils::check_update;
 

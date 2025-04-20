@@ -19,7 +19,7 @@ use ten_manager::{
         response::ApiResponse,
         DesignerState,
     },
-    output::TmanOutputCli,
+    output::cli::TmanOutputCli,
 };
 
 #[actix_web::test]

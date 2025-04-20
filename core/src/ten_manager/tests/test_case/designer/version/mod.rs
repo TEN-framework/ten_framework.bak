@@ -18,7 +18,7 @@ mod tests {
         designer::{
             response::ApiResponse, version::get_version_endpoint, DesignerState,
         },
-        output::TmanOutputCli,
+        output::cli::TmanOutputCli,
         version::VERSION,
     };
 

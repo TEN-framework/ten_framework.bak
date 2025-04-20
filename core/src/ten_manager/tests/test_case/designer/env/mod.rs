@@ -16,7 +16,7 @@ mod tests {
     use ten_manager::{
         config::{metadata::TmanMetadata, TmanConfig},
         designer::{env::get_env_endpoint, DesignerState},
-        output::TmanOutputCli,
+        output::cli::TmanOutputCli,
     };
 
     #[actix_web::test]

@@ -27,7 +27,7 @@ mod tests {
             DesignerState,
         },
         graph::graphs_cache_find_by_name,
-        output::TmanOutputCli,
+        output::cli::TmanOutputCli,
     };
     use ten_rust::{
         graph::msg_conversion::{

@@ -19,7 +19,7 @@ mod tests {
         create_app_endpoint, CreateAppRequestPayload,
     };
     use ten_manager::designer::DesignerState;
-    use ten_manager::output::TmanOutputCli;
+    use ten_manager::output::cli::TmanOutputCli;
 
     #[actix_web::test]
     async fn test_create_app_success() {

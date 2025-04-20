@@ -18,7 +18,7 @@ mod tests {
             response::{ErrorResponse, Status},
             DesignerState,
         },
-        output::TmanOutputCli,
+        output::cli::TmanOutputCli,
     };
     use ten_rust::base_dir_pkg_info::PkgsInfoInApp;
 

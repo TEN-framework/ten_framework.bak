@@ -21,7 +21,7 @@ mod tests {
             DesignerState,
         },
         graph::graphs_cache_find_by_name,
-        output::TmanOutputCli,
+        output::cli::TmanOutputCli,
     };
     use ten_rust::pkg_info::{
         constants::PROPERTY_JSON_FILENAME, message::MsgType,

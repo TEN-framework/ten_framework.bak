@@ -17,7 +17,7 @@ use crate::{
     constants::DESIGNER_BACKEND_DEFAULT_PORT,
     designer::{configure_routes, frontend::get_frontend_asset, DesignerState},
     fs::{check_is_app_folder, get_cwd},
-    output::{TmanOutput, TmanOutputCli},
+    output::{cli::TmanOutputCli, TmanOutput},
     pkg_info::get_all_pkgs::get_all_pkgs_in_app,
 };
 

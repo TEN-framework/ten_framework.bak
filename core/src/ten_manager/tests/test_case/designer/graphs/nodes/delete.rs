@@ -29,7 +29,7 @@ mod tests {
             DesignerState,
         },
         graph::{graphs_cache_find_by_id, graphs_cache_find_by_name},
-        output::TmanOutputCli,
+        output::cli::TmanOutputCli,
     };
 
     use crate::test_case::common::mock::{

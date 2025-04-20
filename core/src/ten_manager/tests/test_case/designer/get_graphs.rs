@@ -25,7 +25,7 @@ use ten_manager::{
         response::ApiResponse,
         DesignerState,
     },
-    output::TmanOutputCli,
+    output::cli::TmanOutputCli,
 };
 
 use crate::test_case::common::mock::inject_all_pkgs_for_mock;
