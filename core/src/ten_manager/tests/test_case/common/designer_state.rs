@@ -9,7 +9,7 @@ use std::{collections::HashMap, sync::Arc};
 use ten_manager::{
     config::{metadata::TmanMetadata, read_config, TmanConfig},
     designer::DesignerState,
-    output::TmanOutputCli,
+    output::cli::TmanOutputCli,
 };
 
 use super::tman_config::find_config_json;

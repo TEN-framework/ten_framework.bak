@@ -18,7 +18,7 @@ mod tests {
             response::{ApiResponse, Status},
             DesignerState,
         },
-        output::TmanOutputCli,
+        output::cli::TmanOutputCli,
     };
 
     #[actix_web::test]

@@ -20,7 +20,7 @@ mod tests {
     };
     use ten_manager::designer::response::{ApiResponse, Status};
     use ten_manager::designer::DesignerState;
-    use ten_manager::output::TmanOutputCli;
+    use ten_manager::output::cli::TmanOutputCli;
 
     use crate::test_case::common::mock::{
         inject_all_pkgs_for_mock, inject_all_standard_pkgs_for_mock,

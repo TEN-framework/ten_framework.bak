@@ -20,7 +20,7 @@ mod tests {
             response::ApiResponse,
             DesignerState,
         },
-        output::TmanOutputCli,
+        output::cli::TmanOutputCli,
     };
 
     use crate::test_case::common::mock::inject_all_standard_pkgs_for_mock;

@@ -16,7 +16,7 @@ use actix_web::{
 use ten_manager::{
     config::{metadata::TmanMetadata, TmanConfig},
     designer::{builtin_function::builtin_function_endpoint, DesignerState},
-    output::TmanOutputCli,
+    output::cli::TmanOutputCli,
 };
 
 #[actix_rt::test]

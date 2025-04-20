@@ -17,7 +17,7 @@ mod tests {
             },
             DesignerState,
         },
-        output::TmanOutputCli,
+        output::cli::TmanOutputCli,
     };
 
     #[actix_web::test]

@@ -24,7 +24,7 @@ mod tests {
             response::ApiResponse,
             DesignerState,
         },
-        output::TmanOutputCli,
+        output::cli::TmanOutputCli,
     };
 
     use crate::test_case::common::mock::{

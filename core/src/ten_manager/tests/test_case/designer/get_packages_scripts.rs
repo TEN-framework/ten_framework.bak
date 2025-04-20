@@ -20,7 +20,7 @@ mod tests {
             response::{ApiResponse, Status},
             DesignerState,
         },
-        output::TmanOutputCli,
+        output::cli::TmanOutputCli,
         pkg_info::get_all_pkgs::get_all_pkgs_in_app,
     };
 

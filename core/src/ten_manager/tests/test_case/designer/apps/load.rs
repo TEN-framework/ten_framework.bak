@@ -18,7 +18,7 @@ mod tests {
     };
     use ten_manager::designer::response::ApiResponse;
     use ten_manager::designer::DesignerState;
-    use ten_manager::output::TmanOutputCli;
+    use ten_manager::output::cli::TmanOutputCli;
 
     #[actix_web::test]
     async fn test_load_app_fail() {

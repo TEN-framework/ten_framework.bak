@@ -18,7 +18,7 @@ use ten_manager::{
         response::{ApiResponse, Status},
         DesignerState,
     },
-    output::TmanOutputCli,
+    output::cli::TmanOutputCli,
 };
 
 #[actix_rt::test]

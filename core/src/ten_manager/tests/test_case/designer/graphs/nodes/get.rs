@@ -20,7 +20,7 @@ mod tests {
             response::{ApiResponse, ErrorResponse},
             DesignerState,
         },
-        output::TmanOutputCli,
+        output::cli::TmanOutputCli,
     };
     use uuid::Uuid;
 

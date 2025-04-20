@@ -21,7 +21,7 @@ use ten_manager::{
         response::ApiResponse,
         DesignerState,
     },
-    output::TmanOutputCli,
+    output::cli::TmanOutputCli,
 };
 use ten_rust::pkg_info::message::{MsgDirection, MsgType};
 

@@ -23,7 +23,7 @@ mod tests {
             response::{ApiResponse, Status},
             DesignerState,
         },
-        output::TmanOutputCli,
+        output::cli::TmanOutputCli,
     };
 
     #[derive(Serialize, Deserialize, Debug, Clone)]

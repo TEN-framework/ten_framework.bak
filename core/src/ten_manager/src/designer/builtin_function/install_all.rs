@@ -13,6 +13,7 @@ use actix_web_actors::ws::WebsocketContext;
 use ten_rust::pkg_info::manifest::support::ManifestSupport;
 
 use super::{BuiltinFunctionOutput, WsBuiltinFunction};
+use crate::output::channel::TmanOutputChannel;
 use crate::output::TmanOutput;
 
 impl WsBuiltinFunction {
@@ -36,38 +37,10 @@ impl WsBuiltinFunction {
 
         let addr = ctx.address();
 
-        // 创建通道，用于跨线程通信
+        // Create a channel for cross-thread communication.
         let (sender, receiver) = mpsc::channel();
 
-        // 创建自定义的 TmanOutput 实现，将日志发送到通道
-        #[derive(Clone)]
-        struct ChannelOutput {
-            sender: mpsc::Sender<String>,
-        }
-
-        impl TmanOutput for ChannelOutput {
-            fn normal_line(&self, text: &str) {
-                let _ = self.sender.send(format!("normal_line:{}", text));
-            }
-
-            fn normal_partial(&self, text: &str) {
-                let _ = self.sender.send(format!("normal_partial:{}", text));
-            }
-
-            fn error_line(&self, text: &str) {
-                let _ = self.sender.send(format!("error_line:{}", text));
-            }
-
-            fn error_partial(&self, text: &str) {
-                let _ = self.sender.send(format!("error_partial:{}", text));
-            }
-
-            fn is_interactive(&self) -> bool {
-                false
-            }
-        }
-
-        let output_channel = Arc::new(Box::new(ChannelOutput {
+        let output_channel = Arc::new(Box::new(TmanOutputChannel {
             sender: sender.clone(),
         }) as Box<dyn TmanOutput>);
 
@@ -75,15 +48,15 @@ impl WsBuiltinFunction {
         let tman_config = self.tman_config.clone();
         let tman_metadata = self.tman_metadata.clone();
 
-        // 在新线程中运行安装过程
+        // Run the installation process in a new thread.
         thread::spawn(move || {
-            // 创建一个新的 Tokio 运行时来执行异步代码
+            // Create a new Tokio runtime to execute asynchronous code.
             let rt = tokio::runtime::Builder::new_current_thread()
                 .enable_all()
                 .build()
                 .unwrap();
 
-            // 在新的运行时中执行安装
+            // Execute the installation in the new runtime.
             let result = rt.block_on(async {
                 crate::cmd::cmd_install::execute_cmd(
                     tman_config,
@@ -94,7 +67,7 @@ impl WsBuiltinFunction {
                 .await
             });
 
-            // 发送完成状态
+            // Send the completion status.
             let exit_code = if result.is_ok() { 0 } else { -1 };
             let error_message = if let Err(err) = result {
                 Some(err.to_string())
@@ -108,18 +81,20 @@ impl WsBuiltinFunction {
             ));
         });
 
-        // 在主线程中启动一个本地任务来监听消息通道
+        // Start a local task in the main thread to listen to the message
+        // channel.
         let addr_clone = addr.clone();
 
-        // 使用actix的fut::wrap_future将标准Future转换为ActorFuture
+        // Use actix's fut::wrap_future to convert a standard Future to an
+        // ActorFuture.
         ctx.spawn(fut::wrap_future::<_, Self>(async move {
-            // 使用循环轮询接收器
+            // Use a loop to poll the receiver.
             let mut continue_running = true;
             while continue_running {
                 match receiver.try_recv() {
                     Ok(msg) => {
                         if msg.starts_with("EXIT:") {
-                            // 解析退出状态
+                            // Parse the exit status.
                             let parts: Vec<&str> = msg.splitn(3, ':').collect();
                             if parts.len() >= 2 {
                                 let exit_code =
@@ -132,7 +107,7 @@ impl WsBuiltinFunction {
                                     None
                                 };
 
-                                // 发送退出消息
+                                // Send the exit message.
                                 addr_clone.do_send(
                                     BuiltinFunctionOutput::Exit {
                                         exit_code,
@@ -142,7 +117,7 @@ impl WsBuiltinFunction {
                                 continue_running = false;
                             }
                         } else if msg.starts_with("normal_line:") {
-                            // 解析并发送正常日志
+                            // Parse and send normal logs.
                             let content = msg.replacen("normal_line:", "", 1);
                             addr_clone.do_send(
                                 BuiltinFunctionOutput::NormalLine(content),
@@ -166,11 +141,11 @@ impl WsBuiltinFunction {
                         }
                     }
                     Err(mpsc::TryRecvError::Empty) => {
-                        // 没有消息，暂时让出控制权
+                        // No message, temporarily yield control.
                         tokio::task::yield_now().await;
                     }
                     Err(mpsc::TryRecvError::Disconnected) => {
-                        // 发送方已断开，退出循环
+                        // The sender has disconnected, exit the loop.
                         continue_running = false;
                     }
                 }

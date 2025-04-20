@@ -29,7 +29,7 @@ use ten_manager::{
         },
         DesignerState,
     },
-    output::TmanOutputCli,
+    output::cli::TmanOutputCli,
 };
 
 // Tests from get.rs

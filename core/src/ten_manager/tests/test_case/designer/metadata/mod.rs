@@ -30,7 +30,7 @@ use ten_manager::{
         response::ApiResponse,
         DesignerState,
     },
-    output::TmanOutputCli,
+    output::cli::TmanOutputCli,
 };
 
 #[actix_web::test]
@@ -220,9 +220,7 @@ async fn test_update_graph_ui() {
 
     let designer_state = DesignerState {
         tman_config: Arc::new(tokio::sync::RwLock::new(TmanConfig::default())),
-        tman_metadata: Arc::new(tokio::sync::RwLock::new(
-            tman_metadata,
-        )),
+        tman_metadata: Arc::new(tokio::sync::RwLock::new(tman_metadata)),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
         graphs_cache: tokio::sync::RwLock::new(HashMap::new()),
@@ -322,9 +320,7 @@ async fn test_get_nonexistent_graph_ui() {
 
     let designer_state = DesignerState {
         tman_config: Arc::new(tokio::sync::RwLock::new(TmanConfig::default())),
-        tman_metadata: Arc::new(tokio::sync::RwLock::new(
-            tman_metadata,
-        )),
+        tman_metadata: Arc::new(tokio::sync::RwLock::new(tman_metadata)),
         out: Arc::new(Box::new(TmanOutputCli)),
         pkgs_cache: tokio::sync::RwLock::new(HashMap::new()),
         graphs_cache: tokio::sync::RwLock::new(HashMap::new()),

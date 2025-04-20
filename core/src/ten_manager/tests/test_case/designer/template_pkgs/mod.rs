@@ -19,7 +19,7 @@ use ten_manager::{
         },
         DesignerState,
     },
-    output::TmanOutputCli,
+    output::cli::TmanOutputCli,
 };
 use ten_rust::pkg_info::pkg_type::PkgType;
 

@@ -4,6 +4,8 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+pub mod channel;
+pub mod cli;
 
 /// Abstract all log output methods: CLI, WebSocket, etc.
 pub trait TmanOutput: Send + Sync {
@@ -18,25 +20,4 @@ pub trait TmanOutput: Send + Sync {
     /// Whether it is interactive (e.g., can block waiting for user input in CLI
     /// environment).
     fn is_interactive(&self) -> bool;
-}
-
-/// Output for CLI: directly println / eprintln.
-pub struct TmanOutputCli;
-
-impl TmanOutput for TmanOutputCli {
-    fn normal_line(&self, text: &str) {
-        println!("{}", text);
-    }
-    fn normal_partial(&self, text: &str) {
-        print!("{}", text);
-    }
-    fn error_line(&self, text: &str) {
-        eprintln!("{}", text);
-    }
-    fn error_partial(&self, text: &str) {
-        eprint!("{}", text);
-    }
-    fn is_interactive(&self) -> bool {
-        true
-    }
 }
