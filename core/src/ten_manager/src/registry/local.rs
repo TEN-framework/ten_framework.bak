@@ -12,14 +12,11 @@ use std::sync::Arc;
 
 use anyhow::{anyhow, Context, Result};
 use console::Emoji;
-use flate2::read::GzDecoder;
 use semver::{Version, VersionReq};
+use serde_json;
 use sha2::{Digest, Sha256};
-use tar::Archive as TarArchive;
 use tempfile::NamedTempFile;
-use ten_rust::pkg_info::constants::MANIFEST_JSON_FILENAME;
 use walkdir::WalkDir;
-use zip::ZipArchive;
 
 use ten_rust::pkg_info::manifest::Manifest;
 use ten_rust::pkg_info::pkg_type::PkgType;
@@ -33,7 +30,6 @@ use crate::config::{is_verbose, TmanConfig};
 use crate::constants::{
     DEFAULT_REGISTRY_PAGE_SIZE, TEN_PACKAGE_FILE_EXTENSION,
 };
-use crate::file_type::{detect_file_type, FileType};
 use crate::output::TmanOutput;
 
 pub async fn upload_package(
@@ -96,6 +92,18 @@ pub async fn upload_package(
             package_file_path,
             full_path.display()
         )
+    })?;
+
+    // Serialize and write the manifest to a JSON file.
+    let manifest_json = serde_json::to_string_pretty(&pkg_info.manifest)
+        .with_context(|| "Failed to serialize manifest to JSON")?;
+
+    let manifest_file_name =
+        format!("{}_{}_manifest.json", file_stem, pkg_info.hash);
+    let manifest_path = dir_path.join(manifest_file_name);
+
+    fs::write(&manifest_path, manifest_json).with_context(|| {
+        format!("Failed to write manifest to '{}'", manifest_path.display())
     })?;
 
     Ok(full_path.to_string_lossy().to_string())
@@ -245,79 +253,6 @@ pub async fn get_package(
     Ok(())
 }
 
-trait ArchiveFindManifest {
-    /// Attempt to locate and read the contents of `manifest.json` in the
-    /// archive file.
-    fn find_manifest(&mut self) -> Result<Option<String>>;
-}
-
-impl ArchiveFindManifest for ZipArchive<File> {
-    fn find_manifest(&mut self) -> Result<Option<String>> {
-        for i in 0..self.len() {
-            let mut file_in_zip = self
-                .by_index(i)
-                .context("Failed to access file within zip archive")?;
-
-            // Check if the file name is `manifest.json`.
-            if file_in_zip.name() == MANIFEST_JSON_FILENAME {
-                let mut manifest_content = String::new();
-                file_in_zip
-                    .read_to_string(&mut manifest_content)
-                    .context("Failed to read manifest.json from zip")?;
-                return Ok(Some(manifest_content));
-            }
-        }
-
-        // Not found.
-        Ok(None)
-    }
-}
-
-impl ArchiveFindManifest for TarArchive<GzDecoder<File>> {
-    fn find_manifest(&mut self) -> Result<Option<String>> {
-        for entry_result in self.entries()? {
-            let mut entry = entry_result?;
-            let entry_path = entry.path()?;
-
-            // Check if the file name is `manifest.json`.
-            if let Some(file_name) =
-                entry_path.file_name().and_then(|os| os.to_str())
-            {
-                if file_name == MANIFEST_JSON_FILENAME {
-                    let mut manifest_content = String::new();
-                    entry
-                        .read_to_string(&mut manifest_content)
-                        .context("Failed to read manifest.json from tar.gz")?;
-                    return Ok(Some(manifest_content));
-                }
-            }
-        }
-
-        // Not found.
-        Ok(None)
-    }
-}
-
-// Helper function to extract the manifest from a .tpkg file.
-fn extract_manifest_from_tpkg_file(path: &Path) -> Result<Option<String>> {
-    let file = File::open(path)
-        .with_context(|| format!("Failed to open {:?}", path))?;
-
-    let file_type = detect_file_type(path)?;
-
-    match file_type {
-        FileType::Zip => {
-            let mut archive =
-                ZipArchive::new(file).context("Failed to read zip archive")?;
-            archive.find_manifest()
-        }
-        FileType::TarGz => {
-            let mut tar = TarArchive::new(GzDecoder::new(file));
-            tar.find_manifest()
-        }
-    }
-}
-
 fn find_file_with_criteria(
     base_url: &Path,
     pkg_type: Option<PkgType>,
@@ -435,35 +370,58 @@ fn search_versions(
             {
                 let path = file.path();
 
-                // Read the package manifest if it exists in the folder.
+                // Look for .tpkg files.
                 if path
                     .file_name()
                     .and_then(|f| f.to_str())
                     .is_some_and(|f| f.ends_with(TEN_PACKAGE_FILE_EXTENSION))
                 {
-                    // Extract the manifest file from the package.
-                    let maybe_manifest = extract_manifest_from_tpkg_file(path)?;
+                    // Get the file stem to look for the corresponding manifest
+                    // file.
+                    if let Some(file_stem) =
+                        path.file_stem().and_then(|f| f.to_str())
+                    {
+                        // Look for the matching manifest file:
+                        // {file_stem}_manifest.json
+                        let manifest_file_name =
+                            format!("{}_manifest.json", file_stem);
+                        let manifest_path =
+                            path.with_file_name(&manifest_file_name);
 
-                    if let Some(manifest_content) = maybe_manifest {
-                        let manifest = Manifest::from_str(&manifest_content)?;
+                        // Read the manifest file if it exists.
+                        if manifest_path.exists() {
+                            let manifest_content =
+                                fs::read_to_string(&manifest_path)
+                                    .with_context(|| {
+                                        format!(
+                                            "Failed to read manifest file: {}",
+                                            manifest_path.display()
+                                        )
+                                    })?;
 
-                        // Generate the download URL from the file path.
-                        let download_url = url::Url::from_file_path(path)
-                            .map_err(|_| {
-                                anyhow!("Failed to convert path to file URL")
-                            })?
-                            .to_string();
+                            let manifest =
+                                Manifest::from_str(&manifest_content)?;
 
-                        // Convert manifest to PkgRegistryInfo.
-                        let mut pkg_registry_info: PkgRegistryInfo =
-                            get_pkg_registry_info_from_manifest(
-                                &download_url,
-                                &manifest,
-                            )?;
+                            // Generate the download URL from the file path.
+                            let download_url = url::Url::from_file_path(path)
+                                .map_err(|_| {
+                                    anyhow!(
+                                        "Failed to convert path to file URL"
+                                    )
+                                })?
+                                .to_string();
 
-                        pkg_registry_info.download_url = download_url;
+                            // Convert manifest to PkgRegistryInfo.
+                            let mut pkg_registry_info: PkgRegistryInfo =
+                                get_pkg_registry_info_from_manifest(
+                                    &download_url,
+                                    &manifest,
+                                )?;
 
-                        results.push(pkg_registry_info);
+                            pkg_registry_info.download_url = download_url;
+
+                            results.push(pkg_registry_info);
+                        }
                     }
                 }
             }

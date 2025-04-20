@@ -13,6 +13,9 @@ ten_package_packaging("0.0.1") {
 
   pkg_src_root_dir = "${target_path}"
   output_path = "${root_out_dir}/${target_path}/ext_a_0.0.1_all.all.all.tpkg"
+
+  manifest_output_path =
+      "${root_out_dir}/${target_path}/ext_a_0.0.1_all.all.all_manifest.json"
 }
 
 ten_package_packaging("0.0.2") {
@@ -22,6 +25,9 @@ ten_package_packaging("0.0.2") {
 
   pkg_src_root_dir = "${target_path}"
   output_path = "${root_out_dir}/${target_path}/ext_a_0.0.2_all.all.all.tpkg"
+
+  manifest_output_path =
+      "${root_out_dir}/${target_path}/ext_a_0.0.2_all.all.all_manifest.json"
 }
 
 ten_package_packaging("1.0.0") {
@@ -31,6 +37,9 @@ ten_package_packaging("1.0.0") {
 
   pkg_src_root_dir = "${target_path}"
   output_path = "${root_out_dir}/${target_path}/ext_a_1.0.0_all.all.all.tpkg"
+
+  manifest_output_path =
+      "${root_out_dir}/${target_path}/ext_a_1.0.0_all.all.all_manifest.json"
 }
 
 ten_package_packaging("1.2.2") {
@@ -40,6 +49,9 @@ ten_package_packaging("1.2.2") {
 
   pkg_src_root_dir = "${target_path}"
   output_path = "${root_out_dir}/${target_path}/ext_a_1.2.2_all.all.all.tpkg"
+
+  manifest_output_path =
+      "${root_out_dir}/${target_path}/ext_a_1.2.2_all.all.all_manifest.json"
 }
 
 ten_package_packaging("1.2.3") {
@@ -49,6 +61,9 @@ ten_package_packaging("1.2.3") {
 
   pkg_src_root_dir = "${target_path}"
   output_path = "${root_out_dir}/${target_path}/ext_a_1.2.3_all.all.all.tpkg"
+
+  manifest_output_path =
+      "${root_out_dir}/${target_path}/ext_a_1.2.3_all.all.all_manifest.json"
 }
 
 ten_package_packaging("2.0.0") {
@@ -58,6 +73,9 @@ ten_package_packaging("2.0.0") {
 
   pkg_src_root_dir = "${target_path}"
   output_path = "${root_out_dir}/${target_path}/ext_a_2.0.0_linux.all.all.tpkg"
+
+  manifest_output_path =
+      "${root_out_dir}/${target_path}/ext_a_2.0.0_linux.all.all_manifest.json"
 }
 
 ten_package_packaging("2.0.1") {
@@ -67,6 +85,9 @@ ten_package_packaging("2.0.1") {
 
   pkg_src_root_dir = "${target_path}"
   output_path = "${root_out_dir}/${target_path}/ext_a_2.0.1_mac.all.all.tpkg"
+
+  manifest_output_path =
+      "${root_out_dir}/${target_path}/ext_a_2.0.1_mac.all.all_manifest.json"
 }
 
 ten_package_packaging("3.0.0") {
@@ -76,6 +97,9 @@ ten_package_packaging("3.0.0") {
 
   pkg_src_root_dir = "${target_path}"
   output_path = "${root_out_dir}/${target_path}/ext_a_3.0.0_linux.x64.all.tpkg"
+
+  manifest_output_path =
+      "${root_out_dir}/${target_path}/ext_a_3.0.0_linux.x64.all_manifest.json"
 }
 
 ten_package_packaging("3.0.1") {
@@ -85,6 +109,9 @@ ten_package_packaging("3.0.1") {
 
   pkg_src_root_dir = "${target_path}"
   output_path = "${root_out_dir}/${target_path}/ext_a_3.0.1_linux.x86.all.tpkg"
+
+  manifest_output_path =
+      "${root_out_dir}/${target_path}/ext_a_3.0.1_linux.x86.all_manifest.json"
 }
 
 ten_package_packaging("3.0.2") {
@@ -94,6 +121,9 @@ ten_package_packaging("3.0.2") {
 
   pkg_src_root_dir = "${target_path}"
   output_path = "${root_out_dir}/${target_path}/ext_a_3.0.2_mac.all.all.tpkg"
+
+  manifest_output_path =
+      "${root_out_dir}/${target_path}/ext_a_3.0.2_mac.all.all_manifest.json"
 }
 
 group("ext_a") {

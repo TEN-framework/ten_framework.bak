@@ -13,6 +13,9 @@ ten_package_packaging("1.0.0") {
 
   pkg_src_root_dir = "${target_path}"
   output_path = "${root_out_dir}/${target_path}/sys_1_1.0.0_all.all.all.tpkg"
+
+  manifest_output_path =
+      "${root_out_dir}/${target_path}/sys_1_1.0.0_all.all.all_manifest.json"
 }
 
 ten_package_packaging("2.0.0") {
@@ -22,6 +25,9 @@ ten_package_packaging("2.0.0") {
 
   pkg_src_root_dir = "${target_path}"
   output_path = "${root_out_dir}/${target_path}/sys_1_2.0.0_all.all.all.tpkg"
+
+  manifest_output_path =
+      "${root_out_dir}/${target_path}/sys_1_2.0.0_all.all.all_manifest.json"
 }
 
 group("sys_1") {

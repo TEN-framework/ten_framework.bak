@@ -48,6 +48,16 @@ template("ten_package_packaging") {
     ]
   }
 
+  # Add the copy_manifest action to copy the manifest.json from source to output
+  if (defined(invoker.manifest_output_path)) {
+    copy("copy_manifest_${_target_name}") {
+      source_manifest_path =
+          rebase_path(invoker.pkg_src_root_dir) + "/manifest.json"
+      sources = [ source_manifest_path ]
+      outputs = [ invoker.manifest_output_path ]
+    }
+  }
+
   group("${target_name}") {
     forward_variables_from(invoker,
                            [
@@ -55,5 +65,10 @@ template("ten_package_packaging") {
                              "public_deps",
                            ])
     public_deps = [ ":ten_package_packaging_${_target_name}" ]
+
+    # Add copy_manifest dependency if manifest paths are provided
+    if (defined(invoker.manifest_output_path)) {
+      public_deps += [ ":copy_manifest_${_target_name}" ]
+    }
   }
 }
