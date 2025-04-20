@@ -123,6 +123,7 @@ async fn get_package_upload_info(
                     hash: pkg_info.hash.clone(),
                     download_url: String::new(),
                     content_format: Some("gzip".to_string()),
+                    tags: pkg_info.manifest.tags.clone(),
                 });
 
                 if is_verbose(tman_config.clone()).await {

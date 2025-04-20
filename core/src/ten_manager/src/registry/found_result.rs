@@ -29,6 +29,9 @@ pub struct PkgRegistryInfo {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "contentFormat")]
     pub content_format: Option<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<Vec<String>>,
 }
 
 mod dependencies_conversion {
@@ -79,6 +82,7 @@ impl From<&PkgInfo> for PkgRegistryInfo {
             hash: pkg_info.hash.clone(),
             download_url: String::new(),
             content_format: None,
+            tags: pkg_info.manifest.tags.clone(),
         }
     }
 }
@@ -97,7 +101,7 @@ impl From<&PkgRegistryInfo> for PkgInfo {
                     .clone(),
                 version: pkg_registry_info.basic_info.version.clone(),
                 dependencies: Some(pkg_registry_info.dependencies.clone()),
-                tags: None,
+                tags: pkg_registry_info.tags.clone(),
                 supports: Some(pkg_registry_info.basic_info.supports.clone()),
                 api: None,
                 package: None,
