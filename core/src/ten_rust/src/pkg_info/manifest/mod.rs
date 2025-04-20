@@ -13,6 +13,8 @@ use std::collections::HashMap;
 use std::{fmt, fs, path::Path, str::FromStr};
 
 use anyhow::{anyhow, Context, Result};
+use once_cell::sync::Lazy;
+use regex::Regex;
 use semver::Version;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
@@ -257,10 +259,22 @@ fn extract_scripts(
 }
 
 fn extract_tags(map: &Map<String, Value>) -> Result<Option<Vec<String>>> {
+    // Lazy static initialization of regex that validates the tag format.
+    static TAG_REGEX: Lazy<Regex> =
+        Lazy::new(|| Regex::new(r"^(ten:)?[A-Za-z_][A-Za-z0-9_]*$").unwrap());
+
     if let Some(Value::Array(tags)) = map.get(TEN_STR_TAGS) {
         let mut result = Vec::new();
         for tag in tags {
             if let Value::String(tag_str) = tag {
+                // Validate tag string format.
+                if !TAG_REGEX.is_match(tag_str) {
+                    return Err(anyhow!(
+                        "Invalid tag format: '{}'. Tags must contain only alphanumeric characters \
+                         and underscores, must not start with a digit, and can only have 'ten:' as prefix",
+                        tag_str
+                    ));
+                }
                 result.push(tag_str.clone());
             } else {
                 return Err(anyhow!("Tag value must be a string"));

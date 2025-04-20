@@ -1746,6 +1746,7 @@ dependencies = [
  "json5",
  "jsonschema",
  "libc",
+ "once_cell",
  "prometheus",
  "regex",
  "semver",
