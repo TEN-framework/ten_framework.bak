@@ -6,7 +6,7 @@
 //
 #include "include_internal/ten_runtime/common/preserved_metadata.h"
 
-static char metadata[] = "version=0.9.6";
+static char metadata[] = "version=0.10.0";
 
 void ten_preserved_metadata(void) {
   ((char volatile *)metadata)[0] = metadata[0];

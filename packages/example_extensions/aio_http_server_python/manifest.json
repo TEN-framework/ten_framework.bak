@@ -1,12 +1,12 @@
 {
   "type": "extension",
   "name": "aio_http_server_python",
-  "version": "0.9.6",
+  "version": "0.10.0",
   "dependencies": [
     {
       "type": "system",
       "name": "ten_runtime_python",
-      "version": "0.9.6"
+      "version": "0.10.0"
     }
   ],
   "api": {}
