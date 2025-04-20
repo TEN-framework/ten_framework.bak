@@ -97,6 +97,7 @@ impl From<&PkgRegistryInfo> for PkgInfo {
                     .clone(),
                 version: pkg_registry_info.basic_info.version.clone(),
                 dependencies: Some(pkg_registry_info.dependencies.clone()),
+                tags: None,
                 supports: Some(pkg_registry_info.basic_info.supports.clone()),
                 api: None,
                 package: None,

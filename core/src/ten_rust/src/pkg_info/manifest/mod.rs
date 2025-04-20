@@ -26,6 +26,7 @@ use dependency::ManifestDependency;
 use publish::PackageConfig;
 use support::ManifestSupport;
 
+use super::constants::TEN_STR_TAGS;
 use super::pkg_type_and_name::PkgTypeAndName;
 
 // Define a structure that mirrors the structure of the JSON file.
@@ -34,6 +35,7 @@ pub struct Manifest {
     pub type_and_name: PkgTypeAndName,
     pub version: Version,
     pub dependencies: Option<Vec<ManifestDependency>>,
+    pub tags: Option<Vec<String>>,
 
     // Note: For future extensions, use the 'features' field to describe the
     // functionality of each package.
@@ -62,13 +64,15 @@ impl<'de> Deserialize<'de> for Manifest {
     {
         let all_fields = Map::deserialize(deserializer)?;
 
-        // Now extract the fields from all_fields
+        // Now extract the fields from all_fields.
         let type_and_name = extract_type_and_name(&all_fields)
             .map_err(serde::de::Error::custom)?;
         let version =
             extract_version(&all_fields).map_err(serde::de::Error::custom)?;
         let dependencies = extract_dependencies(&all_fields)
             .map_err(serde::de::Error::custom)?;
+        let tags =
+            extract_tags(&all_fields).map_err(serde::de::Error::custom)?;
         let supports =
             extract_supports(&all_fields).map_err(serde::de::Error::custom)?;
         let api = extract_api(&all_fields).map_err(serde::de::Error::custom)?;
@@ -81,6 +85,7 @@ impl<'de> Deserialize<'de> for Manifest {
             type_and_name,
             version,
             dependencies,
+            tags,
             supports,
             api,
             package,
@@ -106,6 +111,7 @@ impl Default for Manifest {
             },
             version: Version::new(0, 0, 0),
             dependencies: None,
+            tags: None,
             supports: None,
             api: None,
             package: None,
@@ -131,6 +137,7 @@ impl FromStr for Manifest {
         let type_and_name = extract_type_and_name(&all_fields)?;
         let version = extract_version(&all_fields)?;
         let dependencies = extract_dependencies(&all_fields)?;
+        let tags = extract_tags(&all_fields)?;
         let supports = extract_supports(&all_fields)?;
         let api = extract_api(&all_fields)?;
         let package = extract_package(&all_fields)?;
@@ -141,6 +148,7 @@ impl FromStr for Manifest {
             type_and_name,
             version,
             dependencies,
+            tags,
             supports,
             api,
             package,
@@ -243,6 +251,24 @@ fn extract_scripts(
         Ok(Some(result))
     } else if map.contains_key("scripts") {
         Err(anyhow!("'scripts' field is not an object"))
+    } else {
+        Ok(None)
+    }
+}
+
+fn extract_tags(map: &Map<String, Value>) -> Result<Option<Vec<String>>> {
+    if let Some(Value::Array(tags)) = map.get(TEN_STR_TAGS) {
+        let mut result = Vec::new();
+        for tag in tags {
+            if let Value::String(tag_str) = tag {
+                result.push(tag_str.clone());
+            } else {
+                return Err(anyhow!("Tag value must be a string"));
+            }
+        }
+        Ok(Some(result))
+    } else if map.contains_key(TEN_STR_TAGS) {
+        Err(anyhow!("'tags' field is not an array"))
     } else {
         Ok(None)
     }
