@@ -129,85 +129,6 @@ fn auto_gen_schema_bindings_from_c() {
     }
 }
 
-fn auto_gen_value_bindings_from_c() {
-    let mut base_dir = env::current_dir()
-        .unwrap_or("Failed to get path of //ten_rust/src".into());
-    base_dir.pop();
-    base_dir.pop();
-
-    let mut value_header = base_dir.clone();
-    value_header
-        .push("include_internal/ten_utils/value/bindings/rust/value_proxy.h");
-    if !value_header.exists() {
-        println!("Path of value_proxy.h: {}", value_header.to_str().unwrap());
-        panic!("The //include_internal/ten_utils/value/bindings/rust/value_proxy.h does not exist.");
-    }
-
-    println!("cargo:rerun-if-changed={}", value_header.to_str().unwrap());
-
-    base_dir.push("include");
-
-    let binding_gen = bindgen::Builder::default()
-        .clang_arg(format!("-I{}", base_dir.to_str().unwrap()))
-        .no_copy("ten_value_t")
-        .header(value_header.to_str().unwrap())
-        .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
-        .generate()
-        .expect("Unable to generate bindings");
-
-    let value_dir = Path::new("src/value/");
-    let generated_bindings = value_dir.join("bindings.rs");
-    let temp_bindings = value_dir.join(format!("bindings_{}.rs.tmp", id()));
-
-    binding_gen
-        .write_to_file(&temp_bindings)
-        .expect("Unable to write bindings into file.");
-
-    // Add some rules to the bindings file to disable clippy lints.
-    let bindings_content = fs::read_to_string(&temp_bindings)
-        .expect("Unable to read generated bindings");
-    let disabled_clippy_lints = [
-        "#![allow(non_upper_case_globals)]",
-        "#![allow(non_camel_case_types)]",
-        "#![allow(non_snake_case)]",
-        "#![allow(dead_code)]",
-        "#![allow(improper_ctypes)]",
-        "#![allow(improper_ctypes_definitions)]",
-        "#![allow(clippy::upper_case_acronyms)]",
-    ];
-    let new_bindings_content =
-        disabled_clippy_lints.join("\n") + "\n\n" + &bindings_content;
-    fs::write(&temp_bindings, new_bindings_content)
-        .expect("Unable to add clippy lint rules to the generated bindings.");
-
-    let max_retries = 5;
-    // 500 milliseconds delay between retries.
-    let retry_delay = Duration::from_millis(500);
-
-    for attempt in 1..=max_retries {
-        // Atomically move the temporary file to the target file.
-        match fs::rename(&temp_bindings, &generated_bindings) {
-            Ok(_) => {
-                println!("File renamed successfully.");
-                break;
-            }
-            Err(e) if attempt < max_retries => {
-                println!(
-                    "Attempt {}/{} failed: {}. Retrying...",
-                    attempt, max_retries, e
-                );
-                thread::sleep(retry_delay);
-            }
-            Err(e) => {
-                panic!(
-                    "Unable to move temporary bindings to final destination after {} attempts: {}",
-                    max_retries, e
-                );
-            }
-        }
-    }
-}
-
 // The current auto-detection only supports limited environment combinations;
 // for example, cross-compilation is not supported.
 fn auto_detect_utils_library_path() -> PathBuf {
@@ -257,7 +178,6 @@ fn auto_detect_utils_library_path() -> PathBuf {
 
 fn main() {
     auto_gen_schema_bindings_from_c();
-    auto_gen_value_bindings_from_c();
 
     // If the auto-detected utils library path is incorrect, we can specify it
     // using the environment variable.

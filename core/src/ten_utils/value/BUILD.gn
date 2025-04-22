@@ -7,8 +7,5 @@
 import("//build/ten_utils/utils.gni")
 
 ten_utils_glob("value") {
-  deps = [
-    "bindings:value_bindings",
-    "//third_party/yyjson",
-  ]
+  deps = [ "//third_party/yyjson" ]
 }

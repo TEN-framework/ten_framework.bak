@@ -5,7 +5,6 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 use std::{
-    io::{BufRead, BufReader},
     process::{Command as StdCommand, Stdio},
     sync::Arc,
 };
@@ -15,6 +14,7 @@ use clap::{Arg, ArgMatches, Command};
 use ten_rust::{
     fs::read_file_to_string, pkg_info::constants::MANIFEST_JSON_FILENAME,
 };
+use tokio::io::AsyncBufReadExt;
 
 use crate::{
     config::{is_verbose, metadata::TmanMetadata, TmanConfig},
@@ -213,40 +213,46 @@ pub async fn execute_cmd(
         cmd_builder
     };
 
+    // Get the standard output and standard error of the subprocess.
     command_builder
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
 
-    let mut child = command_builder
+    // Spawn the subprocess.
+    let mut child = tokio::process::Command::from(command_builder)
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
         .spawn()
         .map_err(|e| anyhow!("Failed to spawn subprocess: {}", e))?;
 
-    // Get stdout.
+    // Async reading of stdout.
     if let Some(stdout) = child.stdout.take() {
-        let reader = BufReader::new(stdout);
-        let out = out.clone();
+        let mut reader = tokio::io::BufReader::new(stdout).lines();
+        let out_clone = out.clone();
         tokio::spawn(async move {
-            for line in reader.lines().map_while(Result::ok) {
-                out.normal_line(&line);
+            while let Ok(Some(line)) = reader.next_line().await {
+                out_clone.normal_line(&line);
             }
         });
     }
 
-    // Get stderr.
+    // Async reading of stderr.
     if let Some(stderr) = child.stderr.take() {
-        let reader = BufReader::new(stderr);
-        let out = out.clone();
+        let mut reader_err = tokio::io::BufReader::new(stderr).lines();
+        let out_clone = out.clone();
         tokio::spawn(async move {
-            for line in reader.lines().map_while(Result::ok) {
-                out.error_line(&line);
+            while let Ok(Some(line)) = reader_err.next_line().await {
+                out_clone.error_line(&line);
             }
         });
     }
 
-    // Wait for the subprocess to exit.
+    // Await child exit asynchronously.
     let status = child
         .wait()
+        .await
         .map_err(|e| anyhow!("Failed to wait for the subprocess: {}", e))?;
 
     if !status.success() {

@@ -11,4 +11,3 @@ mod interface;
 mod json_schema;
 mod pkg_info;
 mod schema;
-mod value;
