@@ -42,6 +42,51 @@ pub enum MetricHandle {
     HistogramVec(HistogramVec),
 }
 
+/// Configuration function for telemetry server routes.
+fn configure_routes(cfg: &mut web::ServiceConfig, registry: Registry) {
+    let registry_clone = registry;
+
+    // Configure metrics endpoint.
+    cfg.route(
+        METRICS,
+        web::get().to({
+            let registry_handler = registry_clone.clone();
+
+            move || {
+                let registry_for_request = registry_handler.clone();
+
+                async move {
+                    let metric_families = registry_for_request.gather();
+                    let encoder = TextEncoder::new();
+                    let mut buffer = Vec::new();
+
+                    if encoder.encode(&metric_families, &mut buffer).is_err() {
+                        return HttpResponse::InternalServerError().finish();
+                    }
+
+                    let response = match String::from_utf8(buffer) {
+                        Ok(v) => v,
+                        Err(_) => {
+                            return HttpResponse::InternalServerError().finish()
+                        }
+                    };
+
+                    HttpResponse::Ok().body(response)
+                }
+            }
+        }),
+    );
+
+    // Configure API endpoints.
+    cfg.service(web::scope("/api/v1").service(
+        web::resource("/version").route(web::get().to(|| async {
+            HttpResponse::Ok().json(web::Json(serde_json::json!({
+                "version": "1.0.0"
+            })))
+        })),
+    ));
+}
+
 /// Initialize the telemetry system.
 #[no_mangle]
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
@@ -69,40 +114,8 @@ pub extern "C" fn ten_telemetry_system_create(
         let registry_clone = registry.clone();
 
         let result = HttpServer::new(move || {
-            App::new().route(
-                METRICS,
-                web::get().to({
-                    let registry_handler = registry_clone.clone();
-
-                    move || {
-                        let registry_for_request = registry_handler.clone();
-
-                        async move {
-                            let metric_families = registry_for_request.gather();
-                            let encoder = TextEncoder::new();
-                            let mut buffer = Vec::new();
-
-                            if encoder
-                                .encode(&metric_families, &mut buffer)
-                                .is_err()
-                            {
-                                return HttpResponse::InternalServerError()
-                                    .finish();
-                            }
-
-                            let response = match String::from_utf8(buffer) {
-                                Ok(v) => v,
-                                Err(_) => {
-                                    return HttpResponse::InternalServerError()
-                                        .finish()
-                                }
-                            };
-
-                            HttpResponse::Ok().body(response)
-                        }
-                    }
-                }),
-            )
+            App::new()
+                .configure(|cfg| configure_routes(cfg, registry_clone.clone()))
         })
         // Make actix not linger on the socket.
         .shutdown_timeout(0)
