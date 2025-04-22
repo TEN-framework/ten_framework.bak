@@ -76,7 +76,7 @@ bool ten_app_init_telemetry_system_config(ten_app_t *self, ten_value_t *value) {
   if (endpoint_value && ten_value_is_string(endpoint_value)) {
     const char *endpoint = ten_value_peek_raw_str(endpoint_value, NULL);
     if (endpoint && strlen(endpoint) > 0) {
-      self->telemetry_system = ten_telemetry_system_create(endpoint, NULL);
+      self->telemetry_system = ten_telemetry_system_create(endpoint);
       if (!self->telemetry_system) {
         TEN_LOGE("Failed to create telemetry system with endpoint: %s",
                  endpoint);
@@ -91,8 +91,8 @@ bool ten_app_init_telemetry_system_config(ten_app_t *self, ten_value_t *value) {
   }
 
   // If a valid `endpoint` is not provided, call
-  // `ten_telemetry_system_create(NULL, NULL)`.
-  self->telemetry_system = ten_telemetry_system_create(NULL, NULL);
+  // `ten_telemetry_system_create(NULL)`.
+  self->telemetry_system = ten_telemetry_system_create(NULL);
   if (!self->telemetry_system) {
     TEN_LOGE("Failed to create telemetry system with default endpoint.");
 

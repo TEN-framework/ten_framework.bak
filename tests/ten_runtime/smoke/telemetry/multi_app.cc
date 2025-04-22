@@ -99,7 +99,7 @@ class test_app_2 : public ten::app_t {
                         },
                         "telemetry": {
                           "enabled": true,
-                          "endpoint": "http://0.0.0.0:49485"
+                          "endpoint": "0.0.0.0:49485"
                         }
                       }
                     })"
