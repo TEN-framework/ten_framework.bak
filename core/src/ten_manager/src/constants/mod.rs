@@ -4,24 +4,9 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+pub mod registry;
 
-// Go to https://ten-console.theten.ai/ to get user token.
-pub const DEFAULT_REGISTRY: &str =
-    "https://ten-store.theten.ai/api/ten-cloud-store/v2/packages";
-
-pub const CN_REGISTRY: &str =
-    "https://registry-ten.rtcdeveloper.cn/api/ten-cloud-store/v2/packages";
-
-pub const GITHUB_RELEASE_URL: &str =
-    "https://api.github.com/repos/TEN-framework/ten_framework/releases/latest";
-
-pub const GITHUB_RELEASE_PAGE: &str =
-    "https://github.com/TEN-framework/ten_framework/releases/latest";
-
-// This comment is just for reference.
-//
-// pub const ADMIN_TOKEN: &str =
-//     "cnRlX3N0b3JlOjNjYzc2ODgxYjExNjQ0NTM4ZDQ5YmNmNmNlYjQ2Yjk0";
+pub use registry::*;
 
 pub const DOT_TEN_DIR: &str = ".ten";
 pub const APP_DIR_IN_DOT_TEN_DIR: &str = "app";
