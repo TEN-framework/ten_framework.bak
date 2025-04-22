@@ -24,6 +24,3 @@ pub mod telemetry;
 // declarations.
 /// cbindgen:ignore
 pub mod schema;
-
-/// cbindgen:ignore
-pub mod value;
