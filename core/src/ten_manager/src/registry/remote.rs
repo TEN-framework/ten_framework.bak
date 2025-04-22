@@ -25,7 +25,7 @@ use ten_rust::pkg_info::PkgInfo;
 use super::pkg_cache::{find_in_package_cache, store_file_to_package_cache};
 use crate::config::is_verbose;
 use crate::constants::{
-    DEFAULT_REGISTRY_PAGE_SIZE, REMOTE_REGISTRY_MAX_RETRIES,
+    ADMIN_TOKEN, DEFAULT_REGISTRY_PAGE_SIZE, REMOTE_REGISTRY_MAX_RETRIES,
     REMOTE_REGISTRY_REQUEST_TIMEOUT_SECS, REMOTE_REGISTRY_RETRY_DELAY_MS,
 };
 use crate::http::create_http_client_with_proxies;
@@ -155,7 +155,7 @@ async fn get_package_upload_info(
                     if let Some(admin_token) = &tman_config.read().await.admin_token {
                         let basic_token = format!("Basic {}", admin_token);
                         headers.insert(
-                            AUTHORIZATION,
+                            ADMIN_TOKEN,
                             basic_token.parse().map_err(|e| {
                                 out.error_line(&format!(
                                     "Failed to parse authorization token: {}",
@@ -170,26 +170,25 @@ async fn get_package_upload_info(
                         }
                         return Err(anyhow!("Admin token is required for packages with 'ten:' tags but is missing"));
                     }
-                } else {
-                    // Use user_token as before for regular packages.
-                    if let Some(user_token) = &tman_config.read().await.user_token {
-                        let basic_token = format!("Basic {}", user_token);
-                        headers.insert(
-                            AUTHORIZATION,
-                            basic_token.parse().map_err(|e| {
-                                out.error_line(&format!(
-                                    "Failed to parse authorization token: {}",
-                                    e
-                                ));
+                }
+
+                if let Some(user_token) = &tman_config.read().await.user_token {
+                    let basic_token = format!("Basic {}", user_token);
+                    headers.insert(
+                        AUTHORIZATION,
+                        basic_token.parse().map_err(|e| {
+                            out.error_line(&format!(
+                                "Failed to parse authorization token: {}",
                                 e
-                            })?,
-                        );
-                    } else {
-                        if is_verbose(tman_config.clone()).await {
-                            out.normal_line("Authorization token is missing");
-                        }
-                        return Err(anyhow!("Authorization token is missing"));
+                            ));
+                            e
+                        })?,
+                    );
+                } else {
+                    if is_verbose(tman_config.clone()).await {
+                        out.normal_line("Authorization token is missing");
                     }
+                    return Err(anyhow!("Authorization token is missing"));
                 }
 
                 let response = client
@@ -850,7 +849,7 @@ pub async fn delete_package(
                 {
                     let basic_token = format!("Basic {}", admin_token);
                     headers.insert(
-                        AUTHORIZATION,
+                        ADMIN_TOKEN,
                         basic_token.parse().map_err(|e| {
                             out.error_line(&format!(
                                 "Failed to parse authorization token: {}",
