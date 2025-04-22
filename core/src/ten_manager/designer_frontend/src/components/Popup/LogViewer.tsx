@@ -47,6 +47,7 @@ export const LogViewerPopupContent = (props: { widget: ILogViewerWidget }) => {
       widget.metadata.scriptType &&
       widget.metadata.script
     ) {
+      console.log("appendBackstageWidgetIfNotExists === ");
       appendBackstageWidgetIfNotExists({
         container_id: CONTAINER_DEFAULT_ID,
         group_id: GROUP_LOG_VIEWER_ID,
@@ -64,7 +65,7 @@ export const LogViewerPopupContent = (props: { widget: ILogViewerWidget }) => {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [backstageWidgets, widget.metadata.scriptType, widget.metadata.script]);
+  }, [widget.metadata.scriptType, widget.metadata.script]);
 
   return (
     <LogViewerFrontStageWidget
