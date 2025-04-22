@@ -26,7 +26,7 @@ bool ten_app_check_start_graph_cmd(ten_app_t *self,
   TEN_ASSERT(self && ten_app_check_integrity(self, true), "Should not happen.");
   TEN_ASSERT(start_graph_cmd, "Invalid argument.");
 
-#if defined(TEN_ENABLE_TEN_RUST_APIS)
+#if false
   const char *base_dir = ten_app_get_base_dir(self);
 
   // The pkg_info of extensions in the graph is read from the ten_packages
