@@ -22,11 +22,11 @@ fn auto_gen_schema_bindings_from_c() {
     schema_header
         .push("include_internal/ten_utils/schema/bindings/rust/schema_proxy.h");
     if !schema_header.exists() {
-        println!(
-            "Path of schema_proxy.h: {}",
-            schema_header.to_str().unwrap()
+        println!("Path of schema_proxy.h: {}", schema_header.to_str().unwrap());
+        panic!(
+            "The //include_internal/ten_utils/schema/bindings/rust/\
+             schema_proxy.h does not exist."
         );
-        panic!("The //include_internal/ten_utils/schema/bindings/rust/schema_proxy.h does not exist.");
     }
 
     println!("cargo:rerun-if-changed={}", schema_header.to_str().unwrap());
@@ -121,7 +121,8 @@ fn auto_gen_schema_bindings_from_c() {
             }
             Err(e) => {
                 panic!(
-                    "Unable to move temporary bindings to final destination after {} attempts: {}",
+                    "Unable to move temporary bindings to final destination \
+                     after {} attempts: {}",
                     max_retries, e
                 );
             }

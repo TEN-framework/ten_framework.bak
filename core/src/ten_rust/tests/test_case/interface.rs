@@ -31,13 +31,8 @@ fn test_interface_ref_local() {
     let content_json = result.unwrap();
     assert_eq!(content_json.as_array().unwrap().len(), 2);
 
-    let ib = content_json
-        .as_array()
-        .unwrap()
-        .get(1)
-        .unwrap()
-        .as_object()
-        .unwrap();
+    let ib =
+        content_json.as_array().unwrap().get(1).unwrap().as_object().unwrap();
     assert!(ib.contains_key("cmd"))
 }
 

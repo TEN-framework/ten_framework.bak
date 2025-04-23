@@ -94,6 +94,9 @@ where
     if re.is_match(&msg_name) {
         Ok(msg_name)
     } else {
-        Err(serde::de::Error::custom("Invalid message name format, it needs to conform to the pattern ^[A-Za-z_][A-Za-z0-9_]*$"))
+        Err(serde::de::Error::custom(
+            "Invalid message name format, it needs to conform to the pattern \
+             ^[A-Za-z_][A-Za-z0-9_]*$",
+        ))
     }
 }

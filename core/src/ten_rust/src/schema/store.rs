@@ -102,9 +102,7 @@ impl SchemaStore {
             );
 
             let schema = create_schema_from_json(
-                serde_json::to_value(property_schema_object)
-                    .as_ref()
-                    .unwrap(),
+                serde_json::to_value(property_schema_object).as_ref().unwrap(),
             )?;
             self.property = Some(schema);
         }
@@ -250,9 +248,7 @@ pub fn create_c_schema_from_properties_and_required(
         }
 
         Ok(Some(create_schema_from_json(
-            serde_json::to_value(property_schema_object)
-                .as_ref()
-                .unwrap(),
+            serde_json::to_value(property_schema_object).as_ref().unwrap(),
         )?))
     }
 }

@@ -54,7 +54,8 @@ impl Graph {
                 None if ignore_missing_apps => continue,
                 None => {
                     return Err(anyhow::anyhow!(
-                        "Extension addon [{}] is not found in the pkgs map, should not happen.",
+                        "Extension addon [{}] is not found in the pkgs map, \
+                         should not happen.",
                         dest_addon
                     ))
                 }
@@ -102,19 +103,20 @@ impl Graph {
             .get_addon_name_of_extension(src_app_uri, &connection.extension)?;
 
         let extension_pkg_info = match get_pkg_info_for_extension_addon(
-          pkgs_cache,
-          graph_app_base_dir,
-          &src_app_uri.as_ref().map(|s| s.to_string()),
-          src_addon,
+            pkgs_cache,
+            graph_app_base_dir,
+            &src_app_uri.as_ref().map(|s| s.to_string()),
+            src_addon,
         ) {
-          Some(pkg_info) => pkg_info,
-          None if ignore_missing_apps => return Ok(()),
-          None => {
-              return Err(anyhow::anyhow!(
-                  "Extension addon [{}] is not found in the pkgs map, should not happen.",
-                  src_addon
-              ))
-          }
+            Some(pkg_info) => pkg_info,
+            None if ignore_missing_apps => return Ok(()),
+            None => {
+                return Err(anyhow::anyhow!(
+                    "Extension addon [{}] is not found in the pkgs map, \
+                     should not happen.",
+                    src_addon
+                ))
+            }
         };
 
         // Check command flows.

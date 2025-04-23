@@ -103,9 +103,13 @@ pub extern "C" fn ten_endpoint_system_create(
                 }
 
                 eprintln!(
-              "Failed to bind to address: {}. Attempt {} of {}. Retrying in {} second...",
-              endpoint_str, attempts, max_attempts, TELEMETRY_SERVER_START_RETRY_INTERVAL
-          );
+                    "Failed to bind to address: {}. Attempt {} of {}. \
+                     Retrying in {} second...",
+                    endpoint_str,
+                    attempts,
+                    max_attempts,
+                    TELEMETRY_SERVER_START_RETRY_INTERVAL
+                );
                 std::thread::sleep(wait_duration);
             }
         }

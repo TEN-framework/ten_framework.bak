@@ -197,33 +197,21 @@ fn collect_pkg_info_from_path(
             if pkgs_info.extension_pkgs_info.is_none() {
                 pkgs_info.extension_pkgs_info = Some(Vec::new());
             }
-            pkgs_info
-                .extension_pkgs_info
-                .as_mut()
-                .unwrap()
-                .push(pkg_info);
+            pkgs_info.extension_pkgs_info.as_mut().unwrap().push(pkg_info);
             Ok(())
         }
         PkgType::Protocol => {
             if pkgs_info.protocol_pkgs_info.is_none() {
                 pkgs_info.protocol_pkgs_info = Some(Vec::new());
             }
-            pkgs_info
-                .protocol_pkgs_info
-                .as_mut()
-                .unwrap()
-                .push(pkg_info);
+            pkgs_info.protocol_pkgs_info.as_mut().unwrap().push(pkg_info);
             Ok(())
         }
         PkgType::AddonLoader => {
             if pkgs_info.addon_loader_pkgs_info.is_none() {
                 pkgs_info.addon_loader_pkgs_info = Some(Vec::new());
             }
-            pkgs_info
-                .addon_loader_pkgs_info
-                .as_mut()
-                .unwrap()
-                .push(pkg_info);
+            pkgs_info.addon_loader_pkgs_info.as_mut().unwrap().push(pkg_info);
             Ok(())
         }
         PkgType::System => {
@@ -410,16 +398,13 @@ pub fn get_pkg_info_for_extension_addon<'a>(
     if let Some(pkg_info) = result {
         Some(pkg_info)
     } else if let Some(graph_app_base_dir) = graph_app_base_dir {
-        pkgs_cache
-            .get(graph_app_base_dir)
-            .and_then(|pkgs_info_in_app| {
-                pkgs_info_in_app.get_extensions().iter().find(|pkg_info| {
-                    pkg_info.manifest.type_and_name.pkg_type
-                        == PkgType::Extension
-                        && pkg_info.manifest.type_and_name.name
-                            == *extension_addon_name
-                })
+        pkgs_cache.get(graph_app_base_dir).and_then(|pkgs_info_in_app| {
+            pkgs_info_in_app.get_extensions().iter().find(|pkg_info| {
+                pkg_info.manifest.type_and_name.pkg_type == PkgType::Extension
+                    && pkg_info.manifest.type_and_name.name
+                        == *extension_addon_name
             })
+        })
     } else {
         None
     }

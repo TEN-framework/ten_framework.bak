@@ -77,14 +77,16 @@ impl MsgConversionRule {
             MsgConversionMode::FixedValue => {
                 if self.value.is_none() {
                     return Err(anyhow::anyhow!(
-                        "'value' field is required for the fixed_value conversion mode"
+                        "'value' field is required for the fixed_value \
+                         conversion mode"
                     ));
                 }
             }
             MsgConversionMode::FromOriginal => {
                 if self.original_path.is_none() {
                     return Err(anyhow::anyhow!(
-                        "'original_path' field is required for the from_original conversion mode"
+                        "'original_path' field is required for the \
+                         from_original conversion mode"
                     ));
                 }
 

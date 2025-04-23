@@ -37,9 +37,12 @@ impl Graph {
                 // Check if this extension already exists in our tracking list
                 if all_extensions.contains(&unique_ext_name) {
                     return Err(anyhow::anyhow!(
-                      "Duplicated extension was found in nodes[{}], addon: {}, name: {}.",
-                      node_idx, node.addon, node.type_and_name.name
-                  ));
+                        "Duplicated extension was found in nodes[{}], addon: \
+                         {}, name: {}.",
+                        node_idx,
+                        node.addon,
+                        node.type_and_name.name
+                    ));
                 }
 
                 // Add this extension to our tracking list

@@ -270,8 +270,10 @@ fn extract_tags(map: &Map<String, Value>) -> Result<Option<Vec<String>>> {
                 // Validate tag string format.
                 if !TAG_REGEX.is_match(tag_str) {
                     return Err(anyhow!(
-                        "Invalid tag format: '{}'. Tags must contain only alphanumeric characters \
-                         and underscores, must not start with a digit, and can only have 'ten:' as prefix",
+                        "Invalid tag format: '{}'. Tags must contain only \
+                         alphanumeric characters and underscores, must not \
+                         start with a digit, and can only have 'ten:' as \
+                         prefix",
                         tag_str
                     ));
                 }
@@ -317,7 +319,8 @@ impl Manifest {
             // names within the same directory.
             if self.type_and_name.name != addon_folder_name {
                 return Err(anyhow!(format!(
-                    "the name of the folder '{}' and the package '{}' are different",
+                    "the name of the folder '{}' and the package '{}' are \
+                     different",
                     addon_folder_name, self.type_and_name.name
                 )));
             }
@@ -327,7 +330,8 @@ impl Manifest {
             if self.type_and_name.pkg_type.to_string() != addon_type_folder_name
             {
                 return Err(anyhow!(format!(
-                    "The folder name '{}' does not match the expected package type '{}'",
+                    "The folder name '{}' does not match the expected package \
+                     type '{}'",
                     addon_type_folder_name,
                     self.type_and_name.pkg_type.to_string(),
                 )));
@@ -374,10 +378,7 @@ pub fn parse_manifest_from_file<P: AsRef<Path>>(
         })?,
     )
     .with_context(|| {
-        format!(
-            "Failed to validate {}.",
-            manifest_file_path.as_ref().display()
-        )
+        format!("Failed to validate {}.", manifest_file_path.as_ref().display())
     })?;
 
     // Read the contents of the manifest.json file.
