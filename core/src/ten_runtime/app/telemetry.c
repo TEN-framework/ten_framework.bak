@@ -84,7 +84,7 @@ bool ten_app_init_telemetry_system_config(ten_app_t *self, ten_value_t *value) {
 
   // TODO(Wei): The logic for starting the telemetry system should be moved out
   // of the config process.
-  self->telemetry_system = ten_telemetry_system_create(endpoint);
+  self->telemetry_system = ten_endpoint_system_create(endpoint);
   if (!self->telemetry_system) {
     TEN_LOGE("Failed to create telemetry system with default endpoint.");
 
@@ -106,7 +106,7 @@ void ten_app_deinit_telemetry_system(ten_app_t *self) {
     TEN_LOGD("[%s] Destroy telemetry system.", ten_app_get_uri(self));
 
     ten_app_destroy_metric(self);
-    ten_telemetry_system_shutdown(self->telemetry_system);
+    ten_endpoint_system_shutdown(self->telemetry_system);
   }
 #endif
 }

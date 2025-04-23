@@ -4,22 +4,25 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
+mod api_handler;
+mod telemetry_handler;
+
 use std::os::raw::c_char;
 use std::ptr;
 use std::{ffi::CStr, thread};
 
-use actix_web::{web, App, HttpResponse, HttpServer};
+use actix_web::{web, App, HttpServer};
 use anyhow::Result;
 use futures::channel::oneshot;
 use futures::future::select;
 use futures::FutureExt;
 use prometheus::{
-    Counter, CounterVec, Encoder, Gauge, GaugeVec, Histogram, HistogramOpts,
-    HistogramVec, Opts, Registry, TextEncoder,
+    Counter, CounterVec, Gauge, GaugeVec, Histogram, HistogramOpts,
+    HistogramVec, Opts, Registry,
 };
 
 use crate::constants::{
-    METRICS, TELEMETRY_SERVER_START_RETRY_INTERVAL,
+    TELEMETRY_SERVER_START_RETRY_INTERVAL,
     TELEMETRY_SERVER_START_RETRY_MAX_ATTEMPTS,
 };
 
@@ -46,51 +49,17 @@ pub enum MetricHandle {
 fn configure_routes(cfg: &mut web::ServiceConfig, registry: Registry) {
     let registry_clone = registry;
 
-    // Configure metrics endpoint.
-    cfg.route(
-        METRICS,
-        web::get().to({
-            let registry_handler = registry_clone.clone();
-
-            move || {
-                let registry_for_request = registry_handler.clone();
-
-                async move {
-                    let metric_families = registry_for_request.gather();
-                    let encoder = TextEncoder::new();
-                    let mut buffer = Vec::new();
-
-                    if encoder.encode(&metric_families, &mut buffer).is_err() {
-                        return HttpResponse::InternalServerError().finish();
-                    }
-
-                    let response = match String::from_utf8(buffer) {
-                        Ok(v) => v,
-                        Err(_) => {
-                            return HttpResponse::InternalServerError().finish()
-                        }
-                    };
-
-                    HttpResponse::Ok().body(response)
-                }
-            }
-        }),
-    );
+    // Configure telemetry endpoint.
+    telemetry_handler::configure_telemetry_route(cfg, registry_clone.clone());
 
     // Configure API endpoints.
-    cfg.service(web::scope("/api/v1").service(
-        web::resource("/version").route(web::get().to(|| async {
-            HttpResponse::Ok().json(web::Json(serde_json::json!({
-                "version": "1.0.0"
-            })))
-        })),
-    ));
+    api_handler::configure_api_route(cfg);
 }
 
-/// Initialize the telemetry system.
+/// Initialize the endpoint system.
 #[no_mangle]
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
-pub extern "C" fn ten_telemetry_system_create(
+pub extern "C" fn ten_endpoint_system_create(
     endpoint: *const c_char,
 ) -> *mut TelemetrySystem {
     let endpoint_str = match unsafe { CStr::from_ptr(endpoint) }.to_str() {
@@ -157,7 +126,7 @@ pub extern "C" fn ten_telemetry_system_create(
             // signal.
             let server_future = async {
                 if let Err(e) = server.await {
-                    eprintln!("Telemetry server error: {e}");
+                    eprintln!("Endpoint server error: {e}");
                     // Force the entire process to exit immediately.
                     std::process::exit(-1);
                 }
@@ -170,7 +139,7 @@ pub extern "C" fn ten_telemetry_system_create(
             let shutdown_future = async move {
                 let _ = shutdown_rx.await;
 
-                eprintln!("Shutting down telemetry server (graceful stop)...");
+                eprintln!("Shutting down endpoint server (graceful stop)...");
                 server_handle.stop(true).await;
 
                 // The server is actually stopped (socket closed).
@@ -184,12 +153,12 @@ pub extern "C" fn ten_telemetry_system_create(
             futures::pin_mut!(server_future, shutdown_future);
             select(server_future, shutdown_future).await;
 
-            eprintln!("Telemetry server shut down.");
+            eprintln!("Endpoint server shut down.");
             Ok(())
         });
 
         if let Err(e) = result {
-            eprintln!("Fatal error in telemetry server thread: {:?}", e);
+            eprintln!("Fatal error in endpoint server thread: {:?}", e);
 
             std::process::exit(-1);
         }
@@ -206,10 +175,10 @@ pub extern "C" fn ten_telemetry_system_create(
     Box::into_raw(Box::new(system))
 }
 
-/// Shut down the telemetry system, stop the server, and clean up all resources.
+/// Shut down the endpoint system, stop the server, and clean up all resources.
 #[no_mangle]
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
-pub extern "C" fn ten_telemetry_system_shutdown(
+pub extern "C" fn ten_endpoint_system_shutdown(
     system_ptr: *mut TelemetrySystem,
 ) {
     debug_assert!(!system_ptr.is_null(), "System pointer is null");
@@ -224,12 +193,12 @@ pub extern "C" fn ten_telemetry_system_shutdown(
 
     // Notify the actix system to shut down through the `oneshot` channel.
     if let Some(shutdown_tx) = system.actix_shutdown_tx {
-        eprintln!("Shutting down telemetry server...");
+        eprintln!("Shutting down endpoint server...");
         let _ = shutdown_tx.send(());
     }
 
     if let Some(server_thread_handle) = system.actix_thread {
-        eprintln!("Waiting for telemetry server to shut down...");
+        eprintln!("Waiting for endpoint server to shut down...");
         let _ = server_thread_handle.join();
     }
 }
