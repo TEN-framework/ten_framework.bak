@@ -13,16 +13,17 @@
         6
       ]
     },
-    "uri": {
+    "non_localhost_uri": {
       "type": "string",
       "format": "uri",
       "not": {
         "const": "localhost"
       }
     },
-    "telemetry_endpoint": {
+    "endpoint": {
       "type": "string",
-      "format": "uri"
+      // example.com:8080, 127.0.0.1:3000, etc.
+      "pattern": "^[a-zA-Z0-9._-]+:[0-9]{1,5}$"
     },
     "notEmptyString": {
       "type": "string",
@@ -502,7 +503,7 @@
       "additionalProperties": false,
       "properties": {
         "uri": {
-          "$ref": "#/$defs/uri"
+          "$ref": "#/$defs/non_localhost_uri"
         },
         // @{
         // TODO(Wei): The log_level and log_file below are for versions of ten
@@ -596,7 +597,7 @@
               "type": "boolean"
             },
             "endpoint": {
-              "$ref": "#/$defs/telemetry_endpoint"
+              "$ref": "#/$defs/endpoint"
             }
           }
         },

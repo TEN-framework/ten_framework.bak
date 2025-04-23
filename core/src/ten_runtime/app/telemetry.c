@@ -72,34 +72,26 @@ bool ten_app_init_telemetry_system_config(ten_app_t *self, ten_value_t *value) {
   }
 
   // Check if the `telemetry` object contains the `endpoint` field.
+  const char *endpoint = NULL;
   ten_value_t *endpoint_value = ten_value_object_peek(value, TEN_STR_ENDPOINT);
   if (endpoint_value && ten_value_is_string(endpoint_value)) {
-    const char *endpoint = ten_value_peek_raw_str(endpoint_value, NULL);
-    if (endpoint && strlen(endpoint) > 0) {
-      self->telemetry_system = ten_telemetry_system_create(endpoint, NULL);
-      if (!self->telemetry_system) {
-        TEN_LOGE("Failed to create telemetry system with endpoint: %s",
-                 endpoint);
-
-        // NOLINTNEXTLINE(concurrency-mt-unsafe)
-        exit(EXIT_FAILURE);
-      } else {
-        TEN_LOGI("Create telemetry system with endpoint: %s", endpoint);
-      }
-      return true;
-    }
+    endpoint = ten_value_peek_raw_str(endpoint_value, NULL);
   }
 
-  // If a valid `endpoint` is not provided, call
-  // `ten_telemetry_system_create(NULL, NULL)`.
-  self->telemetry_system = ten_telemetry_system_create(NULL, NULL);
+  if (!endpoint) {
+    endpoint = "0.0.0.0:49484";
+  }
+
+  // TODO(Wei): The logic for starting the telemetry system should be moved out
+  // of the config process.
+  self->telemetry_system = ten_telemetry_system_create(endpoint);
   if (!self->telemetry_system) {
     TEN_LOGE("Failed to create telemetry system with default endpoint.");
 
     // NOLINTNEXTLINE(concurrency-mt-unsafe)
     exit(EXIT_FAILURE);
   } else {
-    TEN_LOGI("Create telemetry system with default endpoint.");
+    TEN_LOGI("Create telemetry system with endpoint: %s", endpoint);
   }
 
   ten_app_create_metric(self);

@@ -19,8 +19,7 @@ use prometheus::{
 };
 
 use crate::constants::{
-    TELEMETRY_DEFAULT_ENDPOINT, TELEMETRY_DEFAULT_PATH,
-    TELEMETRY_SERVER_START_RETRY_INTERVAL,
+    METRICS, TELEMETRY_SERVER_START_RETRY_INTERVAL,
     TELEMETRY_SERVER_START_RETRY_MAX_ATTEMPTS,
 };
 
@@ -43,54 +42,60 @@ pub enum MetricHandle {
     HistogramVec(HistogramVec),
 }
 
+/// Configuration function for telemetry server routes.
+fn configure_routes(cfg: &mut web::ServiceConfig, registry: Registry) {
+    let registry_clone = registry;
+
+    // Configure metrics endpoint.
+    cfg.route(
+        METRICS,
+        web::get().to({
+            let registry_handler = registry_clone.clone();
+
+            move || {
+                let registry_for_request = registry_handler.clone();
+
+                async move {
+                    let metric_families = registry_for_request.gather();
+                    let encoder = TextEncoder::new();
+                    let mut buffer = Vec::new();
+
+                    if encoder.encode(&metric_families, &mut buffer).is_err() {
+                        return HttpResponse::InternalServerError().finish();
+                    }
+
+                    let response = match String::from_utf8(buffer) {
+                        Ok(v) => v,
+                        Err(_) => {
+                            return HttpResponse::InternalServerError().finish()
+                        }
+                    };
+
+                    HttpResponse::Ok().body(response)
+                }
+            }
+        }),
+    );
+
+    // Configure API endpoints.
+    cfg.service(web::scope("/api/v1").service(
+        web::resource("/version").route(web::get().to(|| async {
+            HttpResponse::Ok().json(web::Json(serde_json::json!({
+                "version": "1.0.0"
+            })))
+        })),
+    ));
+}
+
 /// Initialize the telemetry system.
-///
-/// # Parameter
-/// - `endpoint`: The full address including port information, e.g.,
-///   "http://127.0.0.1:9090"
-/// - `path`: The HTTP endpoint path, e.g., "/metrics"
-///
-/// # Return value
-/// Returns a pointer to `TelemetrySystem` on success, otherwise returns `null`.
 #[no_mangle]
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn ten_telemetry_system_create(
     endpoint: *const c_char,
-    path: *const c_char,
 ) -> *mut TelemetrySystem {
-    let endpoint_str = if endpoint.is_null() {
-        TELEMETRY_DEFAULT_ENDPOINT.to_string()
-    } else {
-        let c_str_endpoint = unsafe { CStr::from_ptr(endpoint) };
-        match c_str_endpoint.to_str() {
-            Ok(s) if !s.trim().is_empty() => s.to_string(),
-            _ => TELEMETRY_DEFAULT_ENDPOINT.to_string(),
-        }
-    };
-
-    // If an endpoint is provided, it must start with "http://".
-    if !endpoint.is_null() && !endpoint_str.starts_with("http://") {
-        eprintln!(
-            "Error: endpoint must start with \"http://\". Got: {}",
-            endpoint_str
-        );
-        return ptr::null_mut();
-    }
-
-    let endpoint_for_bind = if endpoint_str.starts_with("http://") {
-        endpoint_str.trim_start_matches("http://").to_string()
-    } else {
-        endpoint_str.clone()
-    };
-
-    let path_str = if path.is_null() {
-        TELEMETRY_DEFAULT_PATH.to_string()
-    } else {
-        let c_str_path = unsafe { CStr::from_ptr(path) };
-        match c_str_path.to_str() {
-            Ok(s) if !s.trim().is_empty() => s.to_string(),
-            _ => TELEMETRY_DEFAULT_PATH.to_string(),
-        }
+    let endpoint_str = match unsafe { CStr::from_ptr(endpoint) }.to_str() {
+        Ok(s) if !s.trim().is_empty() => s.to_string(),
+        _ => return ptr::null_mut(),
     };
 
     // Note: `prometheus::Registry` internally uses `Arc` and `RwLock` to
@@ -107,47 +112,14 @@ pub extern "C" fn ten_telemetry_system_create(
 
     let server_builder = loop {
         let registry_clone = registry.clone();
-        let path_clone = path_str.clone();
 
         let result = HttpServer::new(move || {
-            App::new().route(
-                &path_clone,
-                web::get().to({
-                    let registry_handler = registry_clone.clone();
-
-                    move || {
-                        let registry_for_request = registry_handler.clone();
-
-                        async move {
-                            let metric_families = registry_for_request.gather();
-                            let encoder = TextEncoder::new();
-                            let mut buffer = Vec::new();
-
-                            if encoder
-                                .encode(&metric_families, &mut buffer)
-                                .is_err()
-                            {
-                                return HttpResponse::InternalServerError()
-                                    .finish();
-                            }
-
-                            let response = match String::from_utf8(buffer) {
-                                Ok(v) => v,
-                                Err(_) => {
-                                    return HttpResponse::InternalServerError()
-                                        .finish()
-                                }
-                            };
-
-                            HttpResponse::Ok().body(response)
-                        }
-                    }
-                }),
-            )
+            App::new()
+                .configure(|cfg| configure_routes(cfg, registry_clone.clone()))
         })
         // Make actix not linger on the socket.
         .shutdown_timeout(0)
-        .bind(&endpoint_for_bind);
+        .bind(&endpoint_str);
 
         match result {
             Ok(server) => break server,
