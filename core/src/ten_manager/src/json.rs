@@ -43,10 +43,7 @@ pub fn write_property_json_file(
     property_json: &serde_json::Map<String, serde_json::Value>,
 ) -> Result<()> {
     write_json_map_to_file(
-        Path::new(base_dir)
-            .join(PROPERTY_JSON_FILENAME)
-            .to_str()
-            .unwrap(),
+        Path::new(base_dir).join(PROPERTY_JSON_FILENAME).to_str().unwrap(),
         property_json,
     )
 }
@@ -57,10 +54,7 @@ pub fn write_manifest_json_file(
     manifest_json: &serde_json::Map<String, serde_json::Value>,
 ) -> Result<()> {
     write_json_map_to_file(
-        Path::new(base_dir)
-            .join(MANIFEST_JSON_FILENAME)
-            .to_str()
-            .unwrap(),
+        Path::new(base_dir).join(MANIFEST_JSON_FILENAME).to_str().unwrap(),
         manifest_json,
     )
 }

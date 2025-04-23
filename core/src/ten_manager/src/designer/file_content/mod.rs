@@ -47,11 +47,8 @@ pub async fn get_file_content_endpoint(
                 file_path, err
             ));
 
-            let response = ApiResponse {
-                status: Status::Fail,
-                data: (),
-                meta: None,
-            };
+            let response =
+                ApiResponse { status: Status::Fail, data: (), meta: None };
 
             Ok(HttpResponse::BadRequest().json(response))
         }
@@ -82,11 +79,8 @@ pub async fn save_file_content_endpoint(
                 e
             ));
 
-            let response = ApiResponse {
-                status: Status::Fail,
-                data: (),
-                meta: None,
-            };
+            let response =
+                ApiResponse { status: Status::Fail, data: (), meta: None };
 
             return Ok(HttpResponse::BadRequest().json(response));
         }
@@ -94,11 +88,8 @@ pub async fn save_file_content_endpoint(
 
     match fs::write(file_path, content) {
         Ok(_) => {
-            let response = ApiResponse {
-                status: Status::Ok,
-                data: (),
-                meta: None,
-            };
+            let response =
+                ApiResponse { status: Status::Ok, data: (), meta: None };
             Ok(HttpResponse::Ok().json(response))
         }
         Err(err) => {
@@ -108,11 +99,8 @@ pub async fn save_file_content_endpoint(
                 err
             ));
 
-            let response = ApiResponse {
-                status: Status::Fail,
-                data: (),
-                meta: None,
-            };
+            let response =
+                ApiResponse { status: Status::Fail, data: (), meta: None };
 
             Ok(HttpResponse::BadRequest().json(response))
         }

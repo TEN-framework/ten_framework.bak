@@ -76,10 +76,7 @@ async fn test_ws_builtin_function_install_all() {
     }
 
     // Make sure we received at least one message.
-    assert!(
-        message_count > 0,
-        "Should have received at least one message"
-    );
+    assert!(message_count > 0, "Should have received at least one message");
 
     // Check if the last message matches the expected exit message.
     let expected_exit_message =
@@ -124,9 +121,7 @@ async fn test_cmd_builtin_function_install_all() {
     .await;
 
     // Create a basic request just to test if the route is defined.
-    let req = test::TestRequest::get()
-        .uri("/ws/builtin-function")
-        .to_request();
+    let req = test::TestRequest::get().uri("/ws/builtin-function").to_request();
 
     // Execute the request but don't check for success. This just verifies
     // that the route exists and the handler is called.

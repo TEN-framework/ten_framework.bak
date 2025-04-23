@@ -99,12 +99,10 @@ mod tests {
 
         // Create a test app with the update_graph_endpoint.
         let app = test::init_service(
-            App::new()
-                .app_data(web::Data::new(designer_state.clone()))
-                .route(
-                    "/api/designer/v1/graphs/update",
-                    web::post().to(update_graph_endpoint),
-                ),
+            App::new().app_data(web::Data::new(designer_state.clone())).route(
+                "/api/designer/v1/graphs/update",
+                web::post().to(update_graph_endpoint),
+            ),
         )
         .await;
 
@@ -127,10 +125,8 @@ mod tests {
             msg_conversion: None,
         };
 
-        let message_flow = GraphMessageFlow {
-            name: "test_cmd".to_string(),
-            dest: vec![dest],
-        };
+        let message_flow =
+            GraphMessageFlow { name: "test_cmd".to_string(), dest: vec![dest] };
 
         let connection = GraphConnection {
             app: None,
@@ -191,11 +187,13 @@ mod tests {
 
         // Compare the normalized JSON values.
         assert_eq!(
-                  expected_value, actual_value,
-                  "Property file doesn't match expected content.\nExpected:\n{}\nActual:\n{}",
-                  serde_json::to_string_pretty(&expected_value).unwrap(),
-                  serde_json::to_string_pretty(&actual_value).unwrap()
-              );
+            expected_value,
+            actual_value,
+            "Property file doesn't match expected \
+             content.\nExpected:\n{}\nActual:\n{}",
+            serde_json::to_string_pretty(&expected_value).unwrap(),
+            serde_json::to_string_pretty(&actual_value).unwrap()
+        );
     }
 
     #[actix_web::test]
@@ -318,12 +316,10 @@ mod tests {
 
         // Create a test app with the update_graph_endpoint.
         let app = test::init_service(
-            App::new()
-                .app_data(web::Data::new(designer_state.clone()))
-                .route(
-                    "/api/designer/v1/graphs/update",
-                    web::post().to(update_graph_endpoint),
-                ),
+            App::new().app_data(web::Data::new(designer_state.clone())).route(
+                "/api/designer/v1/graphs/update",
+                web::post().to(update_graph_endpoint),
+            ),
         )
         .await;
 
@@ -388,10 +384,12 @@ mod tests {
 
         // Compare the normalized JSON values.
         assert_eq!(
-                    expected_value, actual_value,
-                    "Property file doesn't match expected content.\nExpected:\n{}\nActual:\n{}",
-                    serde_json::to_string_pretty(&expected_value).unwrap(),
-                    serde_json::to_string_pretty(&actual_value).unwrap()
-                );
+            expected_value,
+            actual_value,
+            "Property file doesn't match expected \
+             content.\nExpected:\n{}\nActual:\n{}",
+            serde_json::to_string_pretty(&expected_value).unwrap(),
+            serde_json::to_string_pretty(&actual_value).unwrap()
+        );
     }
 }

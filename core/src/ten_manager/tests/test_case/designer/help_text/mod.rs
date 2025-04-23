@@ -51,10 +51,8 @@ async fn test_get_help_text_success() {
     .await;
 
     // Make the request.
-    let req = test::TestRequest::post()
-        .uri("/help")
-        .set_json(&payload)
-        .to_request();
+    let req =
+        test::TestRequest::post().uri("/help").set_json(&payload).to_request();
 
     let resp = test::call_service(&app, req).await;
 
@@ -101,10 +99,8 @@ async fn test_get_help_text_chinese() {
     .await;
 
     // Make the request.
-    let req = test::TestRequest::post()
-        .uri("/help")
-        .set_json(&payload)
-        .to_request();
+    let req =
+        test::TestRequest::post().uri("/help").set_json(&payload).to_request();
 
     let resp = test::call_service(&app, req).await;
 
@@ -153,10 +149,8 @@ async fn test_get_help_text_language_fallback() {
     .await;
 
     // Make the request.
-    let req = test::TestRequest::post()
-        .uri("/help")
-        .set_json(&payload)
-        .to_request();
+    let req =
+        test::TestRequest::post().uri("/help").set_json(&payload).to_request();
 
     let resp = test::call_service(&app, req).await;
 
@@ -203,10 +197,8 @@ async fn test_get_help_text_not_found() {
     .await;
 
     // Make the request.
-    let req = test::TestRequest::post()
-        .uri("/help")
-        .set_json(&payload)
-        .to_request();
+    let req =
+        test::TestRequest::post().uri("/help").set_json(&payload).to_request();
 
     let resp = test::call_service(&app, req).await;
 

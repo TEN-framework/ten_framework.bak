@@ -51,7 +51,7 @@ pub fn create_sub_cmd(_args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
                 .short('m')
                 .help(
                     "The path=JsonString to modify in the selected graph. \
-                    E.g. .name=\"test\"",
+                     E.g. .name=\"test\"",
                 )
                 .required(true)
                 .num_args(1),
@@ -68,10 +68,7 @@ pub fn create_sub_cmd(_args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
 
 pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<ModifyGraphCommand> {
     let cmd = ModifyGraphCommand {
-        app_dir: sub_cmd_args
-            .get_one::<String>("APP_DIR")
-            .unwrap()
-            .to_string(),
+        app_dir: sub_cmd_args.get_one::<String>("APP_DIR").unwrap().to_string(),
         predefined_graph_name: sub_cmd_args
             .get_one::<String>("PREDEFINED_GRAPH_NAME")
             .unwrap()

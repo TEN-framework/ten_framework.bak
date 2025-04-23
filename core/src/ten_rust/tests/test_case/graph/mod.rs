@@ -164,7 +164,8 @@ mod tests {
     #[test]
     fn test_start_graph_cmd_single_app_node_app_localhost() {
         let graph_str = include_str!(
-            "../../test_data/start_graph_cmd_single_app_node_app_localhost.json"
+            "../../test_data/start_graph_cmd_single_app_node_app_localhost.\
+             json"
         );
 
         let graph = Graph::from_str(graph_str);
@@ -182,7 +183,8 @@ mod tests {
     #[test]
     fn test_start_graph_cmd_multi_apps_node_app_localhost() {
         let graph_str = include_str!(
-            "../../test_data/start_graph_cmd_multi_apps_node_app_localhost.json"
+            "../../test_data/start_graph_cmd_multi_apps_node_app_localhost.\
+             json"
         );
         let graph = Graph::from_str(graph_str);
 
@@ -222,7 +224,8 @@ mod tests {
     #[test]
     fn test_predefined_graph_app_in_nodes_not_all_declared() {
         let property_str = include_str!(
-            "../../test_data/predefined_graph_app_in_nodes_not_all_declared.json"
+            "../../test_data/predefined_graph_app_in_nodes_not_all_declared.\
+             json"
         );
         let property = parse_property_from_str(
             property_str,
@@ -239,14 +242,16 @@ mod tests {
 
         let msg = property.err().unwrap().to_string();
         assert!(msg.contains(
-            "Either all nodes should have 'app' declared, or none should, but not a mix of both."
+            "Either all nodes should have 'app' declared, or none should, but \
+             not a mix of both."
         ));
     }
 
     #[test]
     fn test_predefined_graph_app_in_connections_not_all_declared() {
         let property_str = include_str!(
-            "../../test_data/predefined_graph_app_in_connections_not_all_declared.json"
+            "../../test_data/\
+             predefined_graph_app_in_connections_not_all_declared.json"
         );
         let property = parse_property_from_str(
             property_str,
@@ -267,7 +272,8 @@ mod tests {
     #[test]
     fn test_predefined_graph_app_in_connections_should_not_declared() {
         let property_str = include_str!(
-            "../../test_data/predefined_graph_app_in_connections_should_not_declared.json"
+            "../../test_data/\
+             predefined_graph_app_in_connections_should_not_declared.json"
         );
         let property = parse_property_from_str(
             property_str,
@@ -288,7 +294,8 @@ mod tests {
     #[test]
     fn test_predefined_graph_app_in_dest_not_all_declared() {
         let property_str = include_str!(
-            "../../test_data/predefined_graph_app_in_dest_not_all_declared.json"
+            "../../test_data/predefined_graph_app_in_dest_not_all_declared.\
+             json"
         );
         let property = parse_property_from_str(
             property_str,
@@ -309,7 +316,8 @@ mod tests {
     #[test]
     fn test_predefined_graph_app_in_dest_should_not_declared() {
         let property_str = include_str!(
-            "../../test_data/predefined_graph_app_in_dest_should_not_declared.json"
+            "../../test_data/predefined_graph_app_in_dest_should_not_declared.\
+             json"
         );
         let property = parse_property_from_str(
             property_str,
@@ -330,7 +338,8 @@ mod tests {
     #[test]
     fn test_graph_same_extension_in_two_section_of_connections() {
         let graph_str = include_str!(
-            "../../test_data/graph_same_extension_in_two_section_of_connections.json"
+            "../../test_data/\
+             graph_same_extension_in_two_section_of_connections.json"
         );
 
         let graph = Graph::from_str(graph_str).unwrap();
@@ -341,7 +350,10 @@ mod tests {
         println!("Error: {:?}", result);
 
         let msg = result.err().unwrap().to_string();
-        assert!(msg.contains("extension 'some_extension' is defined in connection[0] and connection[1]"));
+        assert!(msg.contains(
+            "extension 'some_extension' is defined in connection[0] and \
+             connection[1]"
+        ));
     }
 
     #[test]
@@ -362,7 +374,8 @@ mod tests {
     #[test]
     fn test_graph_messages_same_name_in_different_type_are_ok() {
         let graph_str = include_str!(
-            "../../test_data/graph_messages_same_name_in_different_type_are_ok.json"
+            "../../test_data/\
+             graph_messages_same_name_in_different_type_are_ok.json"
         );
 
         let graph = Graph::from_str(graph_str).unwrap();
@@ -393,14 +406,8 @@ mod tests {
         let graph = Graph::from_str(graph_str).unwrap();
 
         let connections = graph.connections.unwrap();
-        let cmd = connections
-            .first()
-            .unwrap()
-            .cmd
-            .as_ref()
-            .unwrap()
-            .first()
-            .unwrap();
+        let cmd =
+            connections.first().unwrap().cmd.as_ref().unwrap().first().unwrap();
         let msg_conversion =
             cmd.dest.first().unwrap().msg_conversion.as_ref().unwrap();
         let rules = &msg_conversion.msg.as_ref().unwrap().rules.rules;

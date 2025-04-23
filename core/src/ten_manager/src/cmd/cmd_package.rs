@@ -39,14 +39,18 @@ pub fn create_sub_cmd(_args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
         .arg(
             Arg::new("GET_IDENTITY")
                 .long("get-identity")
-                .help("Output the package identity (type, name, version, hash) to stdout and exit")
+                .help(
+                    "Output the package identity (type, name, version, hash) \
+                     to stdout and exit",
+                )
                 .action(clap::ArgAction::SetTrue)
                 .hide(true)
                 .required(false),
         )
         .after_help(
             "Switch to the base directory of the TEN package you want to \
-            package, then simply run 'tman package' directly in that directory.",
+             package, then simply run 'tman package' directly in that \
+             directory.",
         )
 }
 
@@ -55,10 +59,7 @@ pub fn parse_sub_cmd(
 ) -> Result<crate::cmd::cmd_package::PackageCommand> {
     let output_path = sub_cmd_args.get_one::<String>("OUTPUT_PATH").cloned();
     let get_identity = sub_cmd_args.get_flag("GET_IDENTITY");
-    Ok(crate::cmd::cmd_package::PackageCommand {
-        output_path,
-        get_identity,
-    })
+    Ok(crate::cmd::cmd_package::PackageCommand { output_path, get_identity })
 }
 
 pub async fn execute_cmd(

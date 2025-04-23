@@ -63,7 +63,8 @@ impl Graph {
             // Check if we've seen this extension before.
             if let Some(idx) = extensions.get(&extension) {
                 errors.push(format!(
-                    "extension '{}' is defined in connection[{}] and connection[{}], merge them into one section.",
+                    "extension '{}' is defined in connection[{}] and \
+                     connection[{}], merge them into one section.",
                     connection.extension, idx, conn_idx
                 ));
             } else {

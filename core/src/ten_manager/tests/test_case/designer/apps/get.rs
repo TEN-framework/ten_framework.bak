@@ -53,9 +53,8 @@ mod tests {
         )
         .await;
 
-        let req = test::TestRequest::get()
-            .uri("/test_get_apps_some")
-            .to_request();
+        let req =
+            test::TestRequest::get().uri("/test_get_apps_some").to_request();
 
         let resp: ApiResponse<GetAppsResponseData> =
             test::call_and_read_body_json(&app, req).await;
@@ -94,9 +93,8 @@ mod tests {
         )
         .await;
 
-        let req = test::TestRequest::get()
-            .uri("/test_get_apps_none")
-            .to_request();
+        let req =
+            test::TestRequest::get().uri("/test_get_apps_none").to_request();
 
         let resp: ApiResponse<GetAppsResponseData> =
             test::call_and_read_body_json(&app, req).await;

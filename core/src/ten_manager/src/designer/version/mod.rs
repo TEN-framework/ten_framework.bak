@@ -34,15 +34,10 @@ struct CheckUpdateResponseData {
 pub async fn get_version_endpoint(
     _state: web::Data<Arc<DesignerState>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    let version_info = GetVersionResponseData {
-        version: VERSION.to_string(),
-    };
+    let version_info = GetVersionResponseData { version: VERSION.to_string() };
 
-    let response = ApiResponse {
-        status: Status::Ok,
-        data: version_info,
-        meta: None,
-    };
+    let response =
+        ApiResponse { status: Status::Ok, data: version_info, meta: None };
 
     Ok(HttpResponse::Ok().json(response))
 }

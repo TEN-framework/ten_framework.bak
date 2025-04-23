@@ -215,11 +215,8 @@ pub async fn get_graph_nodes_endpoint(
         }
     }
 
-    let response = ApiResponse {
-        status: Status::Ok,
-        data: resp_extensions,
-        meta: None,
-    };
+    let response =
+        ApiResponse { status: Status::Ok, data: resp_extensions, meta: None };
 
     Ok(HttpResponse::Ok().json(response))
 }

@@ -44,9 +44,8 @@ mod tests {
         .await;
 
         // Create test request.
-        let req = test::TestRequest::get()
-            .uri("/api/designer/v1/env")
-            .to_request();
+        let req =
+            test::TestRequest::get().uri("/api/designer/v1/env").to_request();
         let resp = test::call_service(&app, req).await;
 
         // Assert response status.

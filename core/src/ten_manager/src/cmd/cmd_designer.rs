@@ -102,7 +102,7 @@ pub async fn execute_cmd(
 
             out.normal_line(&format!(
                 "{}  Doesn't specify the base directory, use current working \
-                directory instead: {}",
+                 directory instead: {}",
                 Emoji("💡", "!"),
                 &cwd
             ));

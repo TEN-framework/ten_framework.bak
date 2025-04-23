@@ -30,10 +30,7 @@ pub enum BuiltinFunctionOutput {
     NormalPartial(String),
     ErrorLine(String),
     ErrorPartial(String),
-    Exit {
-        exit_code: i32,
-        error_message: Option<String>,
-    },
+    Exit { exit_code: i32, error_message: Option<String> },
 }
 
 enum BuiltinFunction {
@@ -65,11 +62,7 @@ impl WsBuiltinFunction {
         tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
         tman_metadata: Arc<tokio::sync::RwLock<TmanMetadata>>,
     ) -> Self {
-        Self {
-            builtin_function_parser,
-            tman_config,
-            tman_metadata,
-        }
+        Self { builtin_function_parser, tman_config, tman_metadata }
     }
 }
 
@@ -124,15 +117,10 @@ impl Handler<BuiltinFunctionOutput> for WsBuiltinFunction {
                 // Sends a text message to the WebSocket client.
                 ctx.text(out_str);
             }
-            BuiltinFunctionOutput::Exit {
-                exit_code,
-                error_message,
-            } => {
+            BuiltinFunctionOutput::Exit { exit_code, error_message } => {
                 // Send it to the client.
-                let msg_out = OutboundMsg::Exit {
-                    code: exit_code,
-                    error_message,
-                };
+                let msg_out =
+                    OutboundMsg::Exit { code: exit_code, error_message };
                 let out_str = serde_json::to_string(&msg_out).unwrap();
 
                 // Sends a text message to the WebSocket client.
@@ -178,9 +166,8 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>>
                         ),
                     },
                     Err(e) => {
-                        let err_out = OutboundMsg::ErrorLine {
-                            data: e.to_string(),
-                        };
+                        let err_out =
+                            OutboundMsg::ErrorLine { data: e.to_string() };
                         let out_str = serde_json::to_string(&err_out).unwrap();
                         ctx.text(out_str);
                         ctx.close(None);

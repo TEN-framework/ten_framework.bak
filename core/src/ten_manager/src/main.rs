@@ -28,7 +28,8 @@ fn check_update_from_cmdline(out: Arc<Box<dyn TmanOutput>>) -> Result<()> {
     match rt.block_on(check_update()) {
         Ok((true, latest)) => {
             out.normal_line(&format!(
-                "New version found: {}. Please go to {} to download the update.",
+                "New version found: {}. Please go to {} to download the \
+                 update.",
                 latest, GITHUB_RELEASE_PAGE
             ));
         }

@@ -25,7 +25,8 @@ fn check_node_exist(
 
     if src_node_exists {
         return Err(anyhow::anyhow!(
-            "Node with extension '{}' and app '{:?}' already exists in the graph",
+            "Node with extension '{}' and app '{:?}' already exists in the \
+             graph",
             extension,
             app
         ));

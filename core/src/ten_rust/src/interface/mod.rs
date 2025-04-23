@@ -17,7 +17,10 @@ fn resolve_interface_ref(
 ) -> Result<serde_json::Value> {
     if let Some(ref_file_path) = ref_path.strip_prefix("file://") {
         if base_dir.is_empty() {
-            return Err(anyhow!("The base_dir can not be empty when resolving local file reference."));
+            return Err(anyhow!(
+                "The base_dir can not be empty when resolving local file \
+                 reference."
+            ));
         }
 
         let ref_file_full_path = Path::new(base_dir).join(ref_file_path);
@@ -38,9 +41,7 @@ fn resolve_interface_ref(
         return Err(anyhow!("Not supported yet."));
     }
 
-    Err(anyhow!(
-        "The ref path should start with 'file://' or 'https://'"
-    ))
+    Err(anyhow!("The ref path should start with 'file://' or 'https://'"))
 }
 
 /// Resolves the interface content.

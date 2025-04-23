@@ -66,11 +66,7 @@ impl PtyManager {
 
         let writer = pty_pair.master.take_writer().unwrap();
 
-        Self {
-            pty_pair,
-            writer,
-            child: Some(child),
-        }
+        Self { pty_pair, writer, child: Some(child) }
     }
 
     pub fn start(&mut self) -> std::sync::mpsc::Receiver<PtyMessage> {
@@ -124,11 +120,7 @@ impl PtyManager {
     pub fn resize_pty(&self, cols: u16, rows: u16) -> Result<(), ()> {
         self.pty_pair
             .master
-            .resize(PtySize {
-                rows,
-                cols,
-                ..Default::default()
-            })
+            .resize(PtySize { rows, cols, ..Default::default() })
             .map_err(|_| ())
     }
 }

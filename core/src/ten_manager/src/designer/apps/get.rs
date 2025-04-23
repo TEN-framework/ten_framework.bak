@@ -52,10 +52,7 @@ pub async fn get_apps_endpoint(
                             .and_then(|ten| ten.uri.as_ref())
                             .map(|uri| uri.to_string());
 
-                        AppInfo {
-                            base_dir: base_dir.clone(),
-                            app_uri,
-                        }
+                        AppInfo { base_dir: base_dir.clone(), app_uri }
                     })
                     .collect()
             },

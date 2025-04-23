@@ -64,19 +64,16 @@ mod tests {
 
         // Initialize test service.
         let app = test::init_service(
-            App::new()
-                .app_data(web::Data::new(designer_state.clone()))
-                .route(
-                    "/api/designer/v1/apps/unload",
-                    web::post().to(unload_app_endpoint),
-                ),
+            App::new().app_data(web::Data::new(designer_state.clone())).route(
+                "/api/designer/v1/apps/unload",
+                web::post().to(unload_app_endpoint),
+            ),
         )
         .await;
 
         // Create request payload.
-        let request_payload = UnloadAppRequestPayload {
-            base_dir: TEST_DIR.to_string(),
-        };
+        let request_payload =
+            UnloadAppRequestPayload { base_dir: TEST_DIR.to_string() };
 
         // Send request to the test server.
         let req = test::TestRequest::post()
@@ -119,12 +116,10 @@ mod tests {
 
         // Initialize test service.
         let app = test::init_service(
-            App::new()
-                .app_data(web::Data::new(designer_state.clone()))
-                .route(
-                    "/api/designer/v1/apps/unload",
-                    web::post().to(unload_app_endpoint),
-                ),
+            App::new().app_data(web::Data::new(designer_state.clone())).route(
+                "/api/designer/v1/apps/unload",
+                web::post().to(unload_app_endpoint),
+            ),
         )
         .await;
 
@@ -171,19 +166,16 @@ mod tests {
 
         // Initialize test service.
         let app = test::init_service(
-            App::new()
-                .app_data(web::Data::new(designer_state.clone()))
-                .route(
-                    "/api/designer/v1/apps/unload",
-                    web::post().to(unload_app_endpoint),
-                ),
+            App::new().app_data(web::Data::new(designer_state.clone())).route(
+                "/api/designer/v1/apps/unload",
+                web::post().to(unload_app_endpoint),
+            ),
         )
         .await;
 
         // Create request payload with a valid but not loaded base_dir.
-        let request_payload = UnloadAppRequestPayload {
-            base_dir: TEST_DIR.to_string(),
-        };
+        let request_payload =
+            UnloadAppRequestPayload { base_dir: TEST_DIR.to_string() };
 
         // Send request to the test server.
         let req = test::TestRequest::post()

@@ -116,11 +116,8 @@ fn extract_and_process_zip_normal_part(
             }
         }
 
-        let relative_path = out_path
-            .strip_prefix(output_dir)?
-            .to_str()
-            .unwrap()
-            .to_string();
+        let relative_path =
+            out_path.strip_prefix(output_dir)?.to_str().unwrap().to_string();
         installed_paths.paths.push(relative_path);
     }
 
@@ -223,11 +220,12 @@ fn extract_and_process_tar_gz_normal_part(
 
             if out_path.exists() {
                 fs::remove_file(&out_path).with_context(|| {
-                  format!(
-                      "Failed to remove existing file at {:?} before creating symlink",
-                      out_path
-                  )
-              })?;
+                    format!(
+                        "Failed to remove existing file at {:?} before \
+                         creating symlink",
+                        out_path
+                    )
+                })?;
             }
 
             // Create the symbolic link.
@@ -264,11 +262,8 @@ fn extract_and_process_tar_gz_normal_part(
             }
         }
 
-        let relative_path = out_path
-            .strip_prefix(output_dir)?
-            .to_str()
-            .unwrap()
-            .to_string();
+        let relative_path =
+            out_path.strip_prefix(output_dir)?.to_str().unwrap().to_string();
         installed_paths.paths.push(relative_path);
     }
 

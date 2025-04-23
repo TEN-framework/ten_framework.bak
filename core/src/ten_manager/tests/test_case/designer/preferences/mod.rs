@@ -106,9 +106,8 @@ async fn test_get_preferences_invalid_path() {
     .await;
 
     // Create test request with invalid path.
-    let req = test::TestRequest::get()
-        .uri("/api/designer/v1/invalid")
-        .to_request();
+    let req =
+        test::TestRequest::get().uri("/api/designer/v1/invalid").to_request();
     let resp = test::call_service(&app, req).await;
 
     // Assert response status is 404 Not Found.
@@ -179,10 +178,7 @@ async fn test_get_preferences_schema_invalid_path() {
 async fn test_update_preferences_success() {
     // Create test state with mock config file path to avoid writing to real
     // file.
-    let config = TmanConfig {
-        config_file: None,
-        ..TmanConfig::default()
-    };
+    let config = TmanConfig { config_file: None, ..TmanConfig::default() };
 
     let state = Arc::new(DesignerState {
         tman_config: Arc::new(tokio::sync::RwLock::new(config)),
@@ -245,10 +241,7 @@ async fn test_update_preferences_success() {
 #[actix_web::test]
 async fn test_update_preferences_invalid_schema() {
     // Create test state.
-    let config = TmanConfig {
-        config_file: None,
-        ..TmanConfig::default()
-    };
+    let config = TmanConfig { config_file: None, ..TmanConfig::default() };
 
     let state = Arc::new(DesignerState {
         tman_config: Arc::new(tokio::sync::RwLock::new(config)),
@@ -295,10 +288,7 @@ async fn test_update_preferences_invalid_schema() {
 async fn test_update_preferences_field_success() {
     // Create test state with mock config file path to avoid writing to real
     // file.
-    let config = TmanConfig {
-        config_file: None,
-        ..TmanConfig::default()
-    };
+    let config = TmanConfig { config_file: None, ..TmanConfig::default() };
 
     let state = Arc::new(DesignerState {
         tman_config: Arc::new(tokio::sync::RwLock::new(config)),
@@ -355,10 +345,7 @@ async fn test_update_preferences_field_success() {
 #[actix_web::test]
 async fn test_update_preferences_field_invalid_value() {
     // Create test state.
-    let config = TmanConfig {
-        config_file: None,
-        ..TmanConfig::default()
-    };
+    let config = TmanConfig { config_file: None, ..TmanConfig::default() };
 
     let state = Arc::new(DesignerState {
         tman_config: Arc::new(tokio::sync::RwLock::new(config)),
@@ -401,10 +388,7 @@ async fn test_update_preferences_field_invalid_value() {
 #[actix_web::test]
 async fn test_update_preferences_field_invalid_field() {
     // Create test state.
-    let config = TmanConfig {
-        config_file: None,
-        ..TmanConfig::default()
-    };
+    let config = TmanConfig { config_file: None, ..TmanConfig::default() };
 
     let state = Arc::new(DesignerState {
         tman_config: Arc::new(tokio::sync::RwLock::new(config)),
@@ -452,10 +436,7 @@ async fn test_update_preferences_field_invalid_field() {
 async fn test_update_preferences_field_locale() {
     // Create test state with mock config file path to avoid writing to real
     // file.
-    let config = TmanConfig {
-        config_file: None,
-        ..TmanConfig::default()
-    };
+    let config = TmanConfig { config_file: None, ..TmanConfig::default() };
 
     let state = Arc::new(DesignerState {
         tman_config: Arc::new(tokio::sync::RwLock::new(config)),

@@ -25,11 +25,8 @@ pub async fn get_frontend_asset(
 ) -> Result<impl Responder, actix_web::Error> {
     let start_time = Instant::now();
     let path = req.path().trim_start_matches('/').to_owned();
-    let client_ip = req
-        .connection_info()
-        .peer_addr()
-        .unwrap_or("unknown")
-        .to_string();
+    let client_ip =
+        req.connection_info().peer_addr().unwrap_or("unknown").to_string();
 
     if is_verbose(state.tman_config.clone()).await {
         println!(
@@ -45,7 +42,12 @@ pub async fn get_frontend_asset(
                 let size = content.data.len();
 
                 if is_verbose(state.tman_config.clone()).await {
-                    println!("[FRONTEND ASSET] Serving index.html, size: {} bytes, time: {:?}", size, start_time.elapsed());
+                    println!(
+                        "[FRONTEND ASSET] Serving index.html, size: {} bytes, \
+                         time: {:?}",
+                        size,
+                        start_time.elapsed()
+                    );
                 }
                 Ok(HttpResponse::Ok()
                     .content_type("text/html")
@@ -66,8 +68,14 @@ pub async fn get_frontend_asset(
                 let size = content.data.len();
 
                 if is_verbose(state.tman_config.clone()).await {
-                    println!("[FRONTEND ASSET] Serving: '{}', type: {}, size: {} bytes, time: {:?}",
-                             path, mime.as_ref(), size, start_time.elapsed());
+                    println!(
+                        "[FRONTEND ASSET] Serving: '{}', type: {}, size: {} \
+                         bytes, time: {:?}",
+                        path,
+                        mime.as_ref(),
+                        size,
+                        start_time.elapsed()
+                    );
                 }
 
                 Ok(HttpResponse::Ok()
@@ -78,7 +86,11 @@ pub async fn get_frontend_asset(
             // Router.
             None => {
                 if is_verbose(state.tman_config.clone()).await {
-                    println!("[FRONTEND ASSET] Asset '{}' not found, falling back to index.html (SPA mode)", path);
+                    println!(
+                        "[FRONTEND ASSET] Asset '{}' not found, falling back \
+                         to index.html (SPA mode)",
+                        path
+                    );
                 }
 
                 match Asset::get("index.html") {
@@ -86,8 +98,12 @@ pub async fn get_frontend_asset(
                         let size = content.data.len();
 
                         if is_verbose(state.tman_config.clone()).await {
-                            println!("[FRONTEND ASSET] Serving index.html (fallback), size: {} bytes, time: {:?}",
-                                 size, start_time.elapsed());
+                            println!(
+                                "[FRONTEND ASSET] Serving index.html \
+                                 (fallback), size: {} bytes, time: {:?}",
+                                size,
+                                start_time.elapsed()
+                            );
                         }
 
                         Ok(HttpResponse::Ok()
@@ -96,7 +112,10 @@ pub async fn get_frontend_asset(
                     }
                     None => {
                         if is_verbose(state.tman_config.clone()).await {
-                            println!("[FRONTEND ASSET] ERROR: index.html fallback not found!");
+                            println!(
+                                "[FRONTEND ASSET] ERROR: index.html fallback \
+                                 not found!"
+                            );
                         }
 
                         Ok(HttpResponse::NotFound().body("404 Not Found"))

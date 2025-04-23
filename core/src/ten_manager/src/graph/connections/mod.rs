@@ -211,10 +211,8 @@ fn remove_specified_connections(
 
         if let Value::Object(conn_obj) = item {
             // Get connection app and extension to check for match.
-            let conn_app = conn_obj
-                .get("app")
-                .and_then(|v| v.as_str())
-                .map(String::from);
+            let conn_app =
+                conn_obj.get("app").and_then(|v| v.as_str()).map(String::from);
             let conn_extension = conn_obj
                 .get("extension")
                 .and_then(|v| v.as_str())

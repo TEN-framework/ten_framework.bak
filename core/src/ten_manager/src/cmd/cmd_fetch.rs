@@ -48,7 +48,10 @@ pub fn create_sub_cmd(args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
         )
         .arg(
             Arg::new("PACKAGE_NAME")
-                .help("The name of the package with optional version requirement (e.g., foo@1.0.0")
+                .help(
+                    "The name of the package with optional version \
+                     requirement (e.g., foo@1.0.0",
+                )
                 .required(true),
         )
         .arg(

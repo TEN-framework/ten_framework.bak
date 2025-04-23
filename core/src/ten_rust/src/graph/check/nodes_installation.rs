@@ -90,7 +90,8 @@ impl Graph {
         // Return error if there are any non-exempted missing packages.
         if !not_installed_pkgs.is_empty() {
             return Err(anyhow::anyhow!(
-                "The following packages are declared in nodes but not installed: {:?}.",
+                "The following packages are declared in nodes but not \
+                 installed: {:?}.",
                 not_installed_pkgs
             ));
         }

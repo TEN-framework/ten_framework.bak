@@ -36,12 +36,10 @@ mod tests {
         let designer_state = Arc::new(designer_state);
 
         let app = test::init_service(
-            App::new()
-                .app_data(web::Data::new(designer_state.clone()))
-                .route(
-                    "/test_load_app_fail",
-                    web::post().to(load_app_endpoint),
-                ),
+            App::new().app_data(web::Data::new(designer_state.clone())).route(
+                "/test_load_app_fail",
+                web::post().to(load_app_endpoint),
+            ),
         )
         .await;
 

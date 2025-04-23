@@ -47,10 +47,8 @@ mod tests {
             msg_conversion: None,
         };
 
-        let message_flow = GraphMessageFlow {
-            name: cmd_name.to_string(),
-            dest: vec![dest],
-        };
+        let message_flow =
+            GraphMessageFlow { name: cmd_name.to_string(), dest: vec![dest] };
 
         GraphConnection {
             app: app.map(|s| s.to_string()),

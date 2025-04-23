@@ -25,11 +25,8 @@ pub async fn get_preferences_endpoint(
     let preferences = state.tman_config.read().await.designer.clone();
 
     let response_data = GetPreferencesResponseData { preferences };
-    let response = ApiResponse {
-        status: Status::Ok,
-        data: response_data,
-        meta: None,
-    };
+    let response =
+        ApiResponse { status: Status::Ok, data: response_data, meta: None };
 
     Ok(HttpResponse::Ok().json(response))
 }

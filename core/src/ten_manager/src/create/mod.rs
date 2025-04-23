@@ -30,7 +30,8 @@ fn can_package_be_created_in_path(
 
     if target.exists() {
         Err(anyhow!(
-            "Cannot create package '{}': '{}' already contains a file or folder with the same name.",
+            "Cannot create package '{}': '{}' already contains a file or \
+             folder with the same name.",
             pkg_name,
             path.display()
         ))

@@ -43,11 +43,7 @@ pub async fn update_preferences_endpoint(
     // Save to config file
     save_config_to_file(&mut tman_config)?;
 
-    let response = ApiResponse {
-        status: Status::Ok,
-        data: (),
-        meta: None,
-    };
+    let response = ApiResponse { status: Status::Ok, data: (), meta: None };
 
     Ok(HttpResponse::Ok().json(response))
 }

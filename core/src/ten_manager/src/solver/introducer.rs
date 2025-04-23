@@ -80,7 +80,10 @@ pub fn extract_introducer_relations_from_raw_solver_results(
                     };
                 } else {
                     return Err(anyhow::anyhow!(
-                        "Requested dependency [{}]{} not found in introducer, should not happen.", pkg_type_str, name
+                        "Requested dependency [{}]{} not found in introducer, \
+                         should not happen.",
+                        pkg_type_str,
+                        name
                     ));
                 }
 

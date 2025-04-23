@@ -61,8 +61,8 @@ pub fn tar_gz_files_to_file<P: AsRef<Path>>(
                 tar_builder
                     .append_link(&mut header, &relative_path, &target)
                     .with_context(|| {
-                        format!("Failed to append symlink {:?}", path)
-                    })?;
+                    format!("Failed to append symlink {:?}", path)
+                })?;
             } else if path.is_file() {
                 tar_builder.append_path_with_name(path, &relative_path)?;
             } else if metadata.is_dir() {

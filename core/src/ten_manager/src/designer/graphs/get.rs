@@ -41,11 +41,7 @@ pub async fn get_graphs_endpoint(
         })
         .collect();
 
-    let response = ApiResponse {
-        status: Status::Ok,
-        data: graphs,
-        meta: None,
-    };
+    let response = ApiResponse { status: Status::Ok, data: graphs, meta: None };
 
     Ok(HttpResponse::Ok().json(response))
 }

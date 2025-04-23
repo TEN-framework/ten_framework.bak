@@ -56,12 +56,10 @@ mod tests {
 
         // Set up the test service.
         let app = test::init_service(
-            App::new()
-                .app_data(web::Data::new(designer_state.clone()))
-                .route(
-                    "/test_get_extension_schema",
-                    web::post().to(get_extension_schema_endpoint),
-                ),
+            App::new().app_data(web::Data::new(designer_state.clone())).route(
+                "/test_get_extension_schema",
+                web::post().to(get_extension_schema_endpoint),
+            ),
         )
         .await;
 
@@ -136,12 +134,10 @@ mod tests {
 
         // Set up the test service.
         let app = test::init_service(
-            App::new()
-                .app_data(web::Data::new(designer_state.clone()))
-                .route(
-                    "/test_get_extension_schema_not_found",
-                    web::post().to(get_extension_schema_endpoint),
-                ),
+            App::new().app_data(web::Data::new(designer_state.clone())).route(
+                "/test_get_extension_schema_not_found",
+                web::post().to(get_extension_schema_endpoint),
+            ),
         )
         .await;
 
@@ -180,12 +176,10 @@ mod tests {
 
         // Set up the test service.
         let app = test::init_service(
-            App::new()
-                .app_data(web::Data::new(designer_state.clone()))
-                .route(
-                    "/test_get_extension_schema_app_not_found",
-                    web::post().to(get_extension_schema_endpoint),
-                ),
+            App::new().app_data(web::Data::new(designer_state.clone())).route(
+                "/test_get_extension_schema_app_not_found",
+                web::post().to(get_extension_schema_endpoint),
+            ),
         )
         .await;
 

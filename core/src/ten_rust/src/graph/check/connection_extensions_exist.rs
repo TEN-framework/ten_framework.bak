@@ -28,7 +28,8 @@ impl Graph {
 
                 if !all_extensions.contains(&dest_extension) {
                     return Err(anyhow::anyhow!(
-                        "The extension declared in connections[{}].{}[{}] is not defined in nodes, extension: {}.",
+                        "The extension declared in connections[{}].{}[{}] is \
+                         not defined in nodes, extension: {}.",
                         conn_idx,
                         msg_type,
                         flow_idx,
@@ -83,7 +84,8 @@ impl Graph {
             );
             if !all_extensions.contains(&src_extension) {
                 return Err(anyhow::anyhow!(
-                    "The extension declared in connections[{}] is not defined in nodes, extension: {}.",
+                    "The extension declared in connections[{}] is not defined \
+                     in nodes, extension: {}.",
                     conn_idx,
                     connection.extension
                 ));

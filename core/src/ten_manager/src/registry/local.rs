@@ -157,7 +157,8 @@ fn is_same_file_by_hash(
 
     if !registry_file_path.exists() {
         panic!(
-            "Should not happen. The file does not exist in the local registry: {}",
+            "Should not happen. The file does not exist in the local \
+             registry: {}",
             registry_file_path.display()
         );
     }
@@ -200,7 +201,8 @@ pub async fn get_package(
             // `temp_path`.
             if is_verbose(tman_config.clone()).await {
                 out.normal_line(&format!(
-                    "{}  Found the package file ({}) in the package cache, using it directly.",
+                    "{}  Found the package file ({}) in the package cache, \
+                     using it directly.",
                     Emoji("🚀", ":-)"),
                     cached_file_path.to_string_lossy()
                 ));
@@ -357,9 +359,7 @@ fn search_versions(
 
         // Check if the folder meets the version requirements.
         if version_req.is_none()
-            || version_req
-                .as_ref()
-                .is_some_and(|req| req.matches(&version))
+            || version_req.as_ref().is_some_and(|req| req.matches(&version))
         {
             // Traverse the files within the folder of that version.
             for file in WalkDir::new(version_dir.path())

@@ -76,18 +76,15 @@ mod tests {
         let designer_state = Arc::new(designer_state);
 
         let app = test::init_service(
-            App::new()
-                .app_data(web::Data::new(designer_state.clone()))
-                .route(
-                    "/api/designer/v1/graphs/connections",
-                    web::post().to(get_graph_connections_endpoint),
-                ),
+            App::new().app_data(web::Data::new(designer_state.clone())).route(
+                "/api/designer/v1/graphs/connections",
+                web::post().to(get_graph_connections_endpoint),
+            ),
         )
         .await;
 
-        let request_payload = GetGraphConnectionsRequestPayload {
-            graph_id: default_graph_uuid,
-        };
+        let request_payload =
+            GetGraphConnectionsRequestPayload { graph_id: default_graph_uuid };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/connections")
@@ -147,18 +144,27 @@ mod tests {
         let all_pkgs_json_str = vec![
             (
                 TEST_DIR.to_string(),
-                include_str!("../../../../test_data/get_connections_have_all_data_type/app_manifest.json")
-                    .to_string(),
-                include_str!("../../../../test_data/get_connections_have_all_data_type/app_property.json")
-                    .to_string(),
+                include_str!(
+                    "../../../../test_data/get_connections_have_all_data_type/\
+                     app_manifest.json"
+                )
+                .to_string(),
+                include_str!(
+                    "../../../../test_data/get_connections_have_all_data_type/\
+                     app_property.json"
+                )
+                .to_string(),
             ),
             (
                 format!(
                     "{}{}",
                     TEST_DIR, "/ten_packages/extension/extension_addon_1"
                 ),
-                include_str!("../../../../test_data/get_connections_have_all_data_type/extension_addon_1_manifest.json")
-                    .to_string(),
+                include_str!(
+                    "../../../../test_data/get_connections_have_all_data_type/\
+                     extension_addon_1_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
             (
@@ -166,8 +172,11 @@ mod tests {
                     "{}{}",
                     TEST_DIR, "/ten_packages/extension/extension_addon_2"
                 ),
-                include_str!("../../../../test_data/get_connections_have_all_data_type/extension_addon_2_manifest.json")
-                    .to_string(),
+                include_str!(
+                    "../../../../test_data/get_connections_have_all_data_type/\
+                     extension_addon_2_manifest.json"
+                )
+                .to_string(),
                 "{}".to_string(),
             ),
         ];
@@ -203,18 +212,15 @@ mod tests {
 
         let designer_state = Arc::new(designer_state);
         let app = test::init_service(
-            App::new()
-                .app_data(web::Data::new(designer_state.clone()))
-                .route(
-                    "/api/designer/v1/graphs/connections",
-                    web::post().to(get_graph_connections_endpoint),
-                ),
+            App::new().app_data(web::Data::new(designer_state.clone())).route(
+                "/api/designer/v1/graphs/connections",
+                web::post().to(get_graph_connections_endpoint),
+            ),
         )
         .await;
 
-        let request_payload = GetGraphConnectionsRequestPayload {
-            graph_id: default_graph_uuid,
-        };
+        let request_payload =
+            GetGraphConnectionsRequestPayload { graph_id: default_graph_uuid };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/connections")

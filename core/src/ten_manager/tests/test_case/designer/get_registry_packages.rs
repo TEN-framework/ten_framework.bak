@@ -43,11 +43,8 @@ mod tests {
         println!("Sending request to URL: {}", url);
 
         // Send the GET request with query parameters.
-        let response = client
-            .get(&url)
-            .send()
-            .await
-            .expect("Failed to send request");
+        let response =
+            client.get(&url).send().await.expect("Failed to send request");
 
         assert_eq!(response.status(), 200);
         let body = response.text().await.expect("Failed to read response");

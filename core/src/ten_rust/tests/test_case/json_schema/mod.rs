@@ -817,7 +817,10 @@ mod tests {
         assert!(result.is_err());
 
         let msg = result.unwrap_err().to_string();
-        assert!(msg.contains("Additional properties are not allowed ('status' was unexpected) @ /api/cmd_in/0"));
+        assert!(msg.contains(
+            "Additional properties are not allowed ('status' was unexpected) \
+             @ /api/cmd_in/0"
+        ));
     }
 
     #[test]

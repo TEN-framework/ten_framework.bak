@@ -66,9 +66,9 @@ impl Default for TmanConfig {
     fn default() -> Self {
         let mut registry = HashMap::new();
 
-        registry.entry(DEFAULT.to_string()).or_insert(Registry {
-            index: DEFAULT_REGISTRY.to_string(),
-        });
+        registry
+            .entry(DEFAULT.to_string())
+            .or_insert(Registry { index: DEFAULT_REGISTRY.to_string() });
 
         Self {
             registry,

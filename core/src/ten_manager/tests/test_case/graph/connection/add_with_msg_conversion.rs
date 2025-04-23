@@ -641,10 +641,7 @@ mod tests {
         );
         assert_eq!(result_conversion.rules.rules[0].path, "mapped_detail");
         assert_eq!(
-            result_conversion.rules.rules[0]
-                .original_path
-                .as_ref()
-                .unwrap(),
+            result_conversion.rules.rules[0].original_path.as_ref().unwrap(),
             "detail"
         );
     }

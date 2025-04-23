@@ -9,6 +9,7 @@ pub mod base_dir_pkg_info;
 mod bindings;
 pub mod constants;
 pub mod crypto;
+pub mod endpoint;
 pub mod env;
 pub mod fs;
 pub mod graph;
@@ -16,7 +17,6 @@ pub mod interface;
 pub mod json;
 pub mod json_schema;
 pub mod pkg_info;
-pub mod telemetry;
 
 // In the schema/ folder, the Rust API is mainly automatically generated from C
 // headers. There's no need to generate C code in reverse from Rust.

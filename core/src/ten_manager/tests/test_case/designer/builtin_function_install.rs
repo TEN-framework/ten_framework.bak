@@ -69,10 +69,7 @@ async fn test_ws_builtin_function_install() {
     }
 
     // Make sure we received at least one message.
-    assert!(
-        message_count > 0,
-        "Should have received at least one message"
-    );
+    assert!(message_count > 0, "Should have received at least one message");
 
     // Check if the last message matches the expected exit message.
     let expected_exit_message =

@@ -119,10 +119,12 @@ mod tests {
 
         // Compare the normalized JSON values.
         assert_eq!(
-          updated_property, expected_property,
-          "Property file doesn't match expected content.\nExpected:\n{}\nActual:\n{}",
-          serde_json::to_string_pretty(&updated_property).unwrap(),
-          serde_json::to_string_pretty(&expected_property).unwrap()
+            updated_property,
+            expected_property,
+            "Property file doesn't match expected \
+             content.\nExpected:\n{}\nActual:\n{}",
+            serde_json::to_string_pretty(&updated_property).unwrap(),
+            serde_json::to_string_pretty(&expected_property).unwrap()
         );
 
         Ok(())

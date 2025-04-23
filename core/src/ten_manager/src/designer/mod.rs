@@ -56,180 +56,71 @@ pub fn configure_routes(
         web::scope("/api/designer/v1")
             .app_data(state)
             // Version endpoints.
-            .route("/version", web::get().to(version::get_version_endpoint))
-            .route(
-                "/check-update",
-                web::get().to(version::check_update_endpoint),
-            )
+            .service(web::resource("/version").route(web::get().to(version::get_version_endpoint)))
+            .service(web::resource("/check-update").route(web::get().to(version::check_update_endpoint)))
             // Apps endpoints.
-            .route("/apps", web::get().to(apps::get::get_apps_endpoint))
-            .route("/apps/load", web::post().to(apps::load::load_app_endpoint))
-            .route(
-                "/apps/unload",
-                web::post().to(apps::unload::unload_app_endpoint),
-            )
-            .route(
-                "/apps/reload",
-                web::post().to(apps::reload::reload_app_endpoint),
-            )
-            .route(
-                "/apps/create",
-                web::post().to(apps::create::create_app_endpoint),
-            )
-            .route(
-                "/apps/addons",
-                web::post().to(apps::addons::get_app_addons_endpoint),
-            )
-            .route(
-                "/apps/scripts",
-                web::post().to(apps::scripts::get_app_scripts_endpoint),
-            )
-            .route(
-                "/apps/schema",
-                web::post().to(apps::schema::get_app_schema_endpoint),
-            )
+            .service(web::resource("/apps").route(web::get().to(apps::get::get_apps_endpoint)))
+            .service(web::resource("/apps/load").route(web::post().to(apps::load::load_app_endpoint)))
+            .service(web::resource("/apps/unload").route(web::post().to(apps::unload::unload_app_endpoint)))
+            .service(web::resource("/apps/reload").route(web::post().to(apps::reload::reload_app_endpoint)))
+            .service(web::resource("/apps/create").route(web::post().to(apps::create::create_app_endpoint)))
+            .service(web::resource("/apps/addons").route(web::post().to(apps::addons::get_app_addons_endpoint)))
+            .service(web::resource("/apps/scripts").route(web::post().to(apps::scripts::get_app_scripts_endpoint)))
+            .service(web::resource("/apps/schema").route(web::post().to(apps::schema::get_app_schema_endpoint)))
             // Extension endpoints.
-            .route(
-                "/extensions/create",
-                web::post().to(extensions::create::create_extension_endpoint),
-            )
-            .route(
-                "/extensions/schema",
-                web::post().to(extensions::schema::get_extension_schema_endpoint),
-            )
-            .route(
-                "/extensions/property/get",
-                web::post().to(extensions::property::get_extension_property_endpoint),
-            )
+            .service(web::resource("/extensions/create").route(web::post().to(extensions::create::create_extension_endpoint)))
+            .service(web::resource("/extensions/schema").route(web::post().to(extensions::schema::get_extension_schema_endpoint)))
+            .service(web::resource("/extensions/property/get").route(web::post().to(extensions::property::get_extension_property_endpoint)))
             // Manifest validation endpoints.
-            .route(
-                "/manifest/validate",
-                web::post().to(manifest::validate::validate_manifest_endpoint),
-            )
+            .service(web::resource("/manifest/validate").route(web::post().to(manifest::validate::validate_manifest_endpoint)))
             // Property validation endpoints.
-            .route(
-                "/property/validate",
-                web::post().to(property::validate::validate_property_endpoint),
-            )
+            .service(web::resource("/property/validate").route(web::post().to(property::validate::validate_property_endpoint)))
             // Template packages endpoint.
-            .route(
-                "/template-pkgs",
-                web::post().to(template_pkgs::get_template_endpoint),
-            )
+            .service(web::resource("/template-pkgs").route(web::post().to(template_pkgs::get_template_endpoint)))
             // Graphs endpoints.
-            .route("/graphs", web::post().to(graphs::get::get_graphs_endpoint))
-            .route(
-                "/graphs/update",
-                web::post().to(graphs::update::update_graph_endpoint),
-            )
+            .service(web::resource("/graphs").route(web::post().to(graphs::get::get_graphs_endpoint)))
+            .service(web::resource("/graphs/update").route(web::post().to(graphs::update::update_graph_endpoint)))
             // Graph nodes endpoints.
-            .route(
-                "/graphs/nodes",
-                web::post().to(graphs::nodes::get::get_graph_nodes_endpoint),
-            )
-            .route(
-                "/graphs/nodes/add",
-                web::post().to(graphs::nodes::add::add_graph_node_endpoint),
-            )
-            .route(
-                "/graphs/nodes/delete",
-                web::post().to(graphs::nodes::delete::delete_graph_node_endpoint),
-            )
-            .route(
-                "/graphs/nodes/replace",
-                web::post().to(graphs::nodes::replace::replace_graph_node_endpoint),
-            )
-            .route(
-                "/graphs/nodes/property/update",
-                web::post().to(graphs::nodes::property::update::update_graph_node_property_endpoint),
-            )
+            .service(web::resource("/graphs/nodes").route(web::post().to(graphs::nodes::get::get_graph_nodes_endpoint)))
+            .service(web::resource("/graphs/nodes/add").route(web::post().to(graphs::nodes::add::add_graph_node_endpoint)))
+            .service(web::resource("/graphs/nodes/delete").route(web::post().to(graphs::nodes::delete::delete_graph_node_endpoint)))
+            .service(web::resource("/graphs/nodes/replace").route(web::post().to(graphs::nodes::replace::replace_graph_node_endpoint)))
+            .service(web::resource("/graphs/nodes/property/update").route(web::post().to(graphs::nodes::property::update::update_graph_node_property_endpoint)))
             // Graph connections endpoints.
-            .route(
-                "/graphs/connections",
-                web::post().to(graphs::connections::get::get_graph_connections_endpoint),
-            )
-            .route(
-                "/graphs/connections/add",
-                web::post().to(graphs::connections::add::add_graph_connection_endpoint),
-            )
-            .route(
-                "/graphs/connections/delete",
-                web::post().to(graphs::connections::delete::delete_graph_connection_endpoint),
-            )
-            .route(
-                "/graphs/connections/msg_conversion/update",
-                web::post().to(graphs::connections::msg_conversion::update::update_graph_connection_msg_conversion_endpoint),
-            )
+            .service(web::resource("/graphs/connections").route(web::post().to(graphs::connections::get::get_graph_connections_endpoint)))
+            .service(web::resource("/graphs/connections/add").route(web::post().to(graphs::connections::add::add_graph_connection_endpoint)))
+            .service(web::resource("/graphs/connections/delete").route(web::post().to(graphs::connections::delete::delete_graph_connection_endpoint)))
+            .service(web::resource("/graphs/connections/msg_conversion/update").route(web::post().to(graphs::connections::msg_conversion::update::update_graph_connection_msg_conversion_endpoint)))
             // Messages endpoints.
-            .route(
-                "/messages/compatible",
-                web::post().to(messages::compatible::get_compatible_messages_endpoint),
-            )
+            .service(web::resource("/messages/compatible").route(web::post().to(messages::compatible::get_compatible_messages_endpoint)))
             // Preferences endpoints.
-            .route(
-                "/preferences/schema",
-                web::get().to(
-                    preferences::get_schema::get_preferences_schema_endpoint,
-                ),
+            .service(web::resource("/preferences/schema").route(web::get().to(preferences::get_schema::get_preferences_schema_endpoint)))
+            .service(
+                web::resource("/preferences")
+                    .route(web::get().to(preferences::get::get_preferences_endpoint))
+                    .route(web::put().to(preferences::update::update_preferences_endpoint))
             )
-            .route(
-                "/preferences",
-                web::get().to(preferences::get::get_preferences_endpoint),
-            )
-            .route(
-                "/preferences",
-                web::put().to(preferences::update::update_preferences_endpoint),
-            )
-            .route(
-                "/preferences/field",
-                web::patch().to(
-                    preferences::update_field::update_preferences_field_endpoint,
-                ),
-            )
+            .service(web::resource("/preferences/field").route(web::patch().to(preferences::update_field::update_preferences_field_endpoint)))
             // Internal config endpoints.
-            .route(
-                "/internal-config/graph-ui/set",
-                web::post().to(metadata::graph_ui::set::set_graph_ui_endpoint),
-            )
-            .route(
-                "/internal-config/graph-ui/get",
-                web::post().to(metadata::graph_ui::get::get_graph_ui_endpoint),
-            )
+            .service(web::resource("/internal-config/graph-ui/set").route(web::post().to(metadata::graph_ui::set::set_graph_ui_endpoint)))
+            .service(web::resource("/internal-config/graph-ui/get").route(web::post().to(metadata::graph_ui::get::get_graph_ui_endpoint)))
             // File system endpoints.
-            .route("/dir-list", web::post().to(dir_list::list_dir_endpoint))
-            .route(
-                "/file-content",
-                web::post().to(file_content::get_file_content_endpoint),
-            )
-            .route(
-                "/file-content",
-                web::put().to(file_content::save_file_content_endpoint),
+            .service(web::resource("/dir-list").route(web::post().to(dir_list::list_dir_endpoint)))
+            .service(
+                web::resource("/file-content")
+                    .route(web::post().to(file_content::get_file_content_endpoint))
+                    .route(web::put().to(file_content::save_file_content_endpoint))
             )
             // Websocket endpoints.
-            .route(
-                "/ws/builtin-function",
-                web::get().to(builtin_function::builtin_function_endpoint),
-            )
-            .route("/ws/exec", web::get().to(exec::exec_endpoint))
-            .route(
-                "/ws/terminal",
-                web::get().to(terminal::ws_terminal_endpoint),
-            )
+            .service(web::resource("/ws/builtin-function").route(web::get().to(builtin_function::builtin_function_endpoint)))
+            .service(web::resource("/ws/exec").route(web::get().to(exec::exec_endpoint)))
+            .service(web::resource("/ws/terminal").route(web::get().to(terminal::ws_terminal_endpoint)))
             // Doc endpoints.
-            .route(
-                "/help-text",
-                web::post().to(help_text::get_help_text_endpoint),
-            )
-            .route(
-                "/doc-link",
-                web::post().to(doc_link::get_doc_link_endpoint),
-            )
+            .service(web::resource("/help-text").route(web::post().to(help_text::get_help_text_endpoint)))
+            .service(web::resource("/doc-link").route(web::post().to(doc_link::get_doc_link_endpoint)))
             // Registry endpoints.
-            .route(
-                "/registry/packages",
-                web::get().to(registry::packages::get_packages_endpoint),
-            )
+            .service(web::resource("/registry/packages").route(web::get().to(registry::packages::get_packages_endpoint)))
             // Environment endpoints.
-            .route("/env", web::get().to(env::get_env_endpoint)),
+            .service(web::resource("/env").route(web::get().to(env::get_env_endpoint))),
     );
 }

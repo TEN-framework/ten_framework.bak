@@ -46,10 +46,7 @@ mod tests {
             );
 
             assert_eq!(
-                pkgs_cache
-                    .get("tests/test_data/app_with_uri")
-                    .unwrap()
-                    .len(),
+                pkgs_cache.get("tests/test_data/app_with_uri").unwrap().len(),
                 3
             );
         }
@@ -58,12 +55,10 @@ mod tests {
 
         // Set up the test service.
         let app = test::init_service(
-            App::new()
-                .app_data(web::Data::new(designer_state.clone()))
-                .route(
-                    "/test_get_apps_with_uri",
-                    web::get().to(get_apps_endpoint),
-                ),
+            App::new().app_data(web::Data::new(designer_state.clone())).route(
+                "/test_get_apps_with_uri",
+                web::get().to(get_apps_endpoint),
+            ),
         )
         .await;
 
@@ -132,12 +127,10 @@ mod tests {
 
         // Set up the test service.
         let app = test::init_service(
-            App::new()
-                .app_data(web::Data::new(designer_state.clone()))
-                .route(
-                    "/test_get_apps_without_uri",
-                    web::get().to(get_apps_endpoint),
-                ),
+            App::new().app_data(web::Data::new(designer_state.clone())).route(
+                "/test_get_apps_without_uri",
+                web::get().to(get_apps_endpoint),
+            ),
         )
         .await;
 

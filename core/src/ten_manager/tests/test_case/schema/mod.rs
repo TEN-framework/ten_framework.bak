@@ -60,11 +60,7 @@ mod tests {
         });
 
         let result = validate_tman_config(&config_json);
-        assert!(
-            result.is_ok(),
-            "Should validate a full config: {:?}",
-            result
-        );
+        assert!(result.is_ok(), "Should validate a full config: {:?}", result);
     }
 
     // Test case for invalid field type.
@@ -193,18 +189,12 @@ mod tests {
     #[test]
     fn test_get_designer_schema() {
         let schema_str = get_designer_schema();
-        assert!(
-            !schema_str.is_empty(),
-            "Designer schema should not be empty"
-        );
+        assert!(!schema_str.is_empty(), "Designer schema should not be empty");
 
         // Verify the returned JSON is valid.
         let schema_result =
             serde_json::from_str::<serde_json::Value>(schema_str);
-        assert!(
-            schema_result.is_ok(),
-            "Designer schema should be valid JSON"
-        );
+        assert!(schema_result.is_ok(), "Designer schema should be valid JSON");
 
         // Verify it contains expected key fields.
         let schema_json = schema_result.unwrap();

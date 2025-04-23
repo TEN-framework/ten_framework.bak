@@ -75,10 +75,8 @@ pub fn parse_property_from_str(
         // Process the ten field manually instead of using
         // serde_json::from_value directly. Create a TenInProperty with empty
         // predefined_graphs.
-        let mut ten_in_property = TenInProperty {
-            predefined_graphs: None,
-            uri: None,
-        };
+        let mut ten_in_property =
+            TenInProperty { predefined_graphs: None, uri: None };
 
         // Get other fields from ten_value using serde.
         if let Value::Object(map) = ten_value {
@@ -142,8 +140,8 @@ fn validate_predefined_graphs(graphs: &[GraphInfo]) -> Result<()> {
             // Note: We're storing references to graph names, which is correct.
             if !seen_graph_names.insert(name) {
                 return Err(anyhow::anyhow!(
-                    "Duplicate predefined graph name detected: '{}'. \
-                    Each predefined_graph must have a unique 'name'.",
+                    "Duplicate predefined graph name detected: '{}'. Each \
+                     predefined_graph must have a unique 'name'.",
                     name
                 ));
             }
