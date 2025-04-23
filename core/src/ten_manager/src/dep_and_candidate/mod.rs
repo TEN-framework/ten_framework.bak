@@ -38,9 +38,7 @@ struct MergedVersionReq {
 
 impl MergedVersionReq {
     fn new(version_req: &VersionReq) -> Self {
-        MergedVersionReq {
-            version_reqs: HashSet::from([version_req.clone()]),
-        }
+        MergedVersionReq { version_reqs: HashSet::from([version_req.clone()]) }
     }
 
     /// If there is already the same version requirement, it means there is no
@@ -73,10 +71,7 @@ fn merge_dependency_to_dependencies(
             name,
             version_req,
         } => (
-            PkgTypeAndName {
-                pkg_type: *pkg_type,
-                name: name.clone(),
-            },
+            PkgTypeAndName { pkg_type: *pkg_type, name: name.clone() },
             version_req,
         ),
         ManifestDependency::LocalDependency { path, base_dir } => {
@@ -148,9 +143,7 @@ fn process_local_dependency_to_get_candidate(
 
         Ok(())
     } else {
-        Err(anyhow!(
-            "Expected LocalDependency but got RegistryDependency"
-        ))
+        Err(anyhow!("Expected LocalDependency but got RegistryDependency"))
     }
 }
 
@@ -178,16 +171,13 @@ async fn process_non_local_dependency_to_get_candidate(
             name,
             version_req,
         } => (
-            PkgTypeAndName {
-                pkg_type: *pkg_type,
-                name: name.clone(),
-            },
+            PkgTypeAndName { pkg_type: *pkg_type, name: name.clone() },
             version_req.clone(),
         ),
         _ => {
             return Err(anyhow!(
                 "Expected RegistryDependency but got LocalDependency"
-            ))
+            ));
         }
     };
 
@@ -246,11 +236,7 @@ async fn process_non_local_dependency_to_get_candidate(
     // Filter suitable candidate packages according to `supports`.
     for mut candidate_pkg_info in candidate_pkg_infos {
         let compatible_score = is_manifest_supports_compatible_with(
-            &candidate_pkg_info
-                .manifest
-                .supports
-                .clone()
-                .unwrap_or_default(),
+            &candidate_pkg_info.manifest.supports.clone().unwrap_or_default(),
             support,
         );
 
@@ -276,13 +262,10 @@ async fn process_non_local_dependency_to_get_candidate(
                 ));
             }
 
-            all_candidates
-                .entry(pkg_type_name.clone())
-                .or_default()
-                .insert(
-                    (&candidate_pkg_info).into(),
-                    candidate_pkg_info.clone(),
-                );
+            all_candidates.entry(pkg_type_name.clone()).or_default().insert(
+                (&candidate_pkg_info).into(),
+                candidate_pkg_info.clone(),
+            );
 
             new_pkgs_to_be_searched.push(candidate_pkg_info);
         }

@@ -50,10 +50,7 @@ fn install_local_dependency_pkg_info(
     dest_dir_path: &String,
     out: Arc<Box<dyn TmanOutput>>,
 ) -> Result<()> {
-    assert!(
-        pkg_info.local_dependency_path.is_some(),
-        "Should not happen.",
-    );
+    assert!(pkg_info.local_dependency_path.is_some(), "Should not happen.",);
 
     let src_path = pkg_info.local_dependency_path.as_ref().unwrap();
     let src_base_dir =
@@ -63,18 +60,12 @@ fn install_local_dependency_pkg_info(
         .join(src_path)
         .canonicalize()
         .with_context(|| {
-        format!(
-            "Failed to canonicalize path: {} + {}",
-            src_base_dir, src_path
-        )
+        format!("Failed to canonicalize path: {} + {}", src_base_dir, src_path)
     })?;
 
     let src_dir_path_metadata = fs::metadata(&src_dir_path)
         .expect("Failed to get metadata for src_path");
-    assert!(
-        src_dir_path_metadata.is_dir(),
-        "Source path must be a directory."
-    );
+    assert!(src_dir_path_metadata.is_dir(), "Source path must be a directory.");
 
     if Path::new(dest_dir_path).exists() {
         out.normal_line(&format!(
@@ -347,11 +338,8 @@ fn update_package_manifest(
     base_pkg_info.manifest.dependencies = Some(updated_dependencies);
 
     // Use the deps_to_remove for update_manifest_all_fields.
-    let deps_to_remove_option = if !deps_to_remove.is_empty() {
-        Some(&deps_to_remove)
-    } else {
-        None
-    };
+    let deps_to_remove_option =
+        if !deps_to_remove.is_empty() { Some(&deps_to_remove) } else { None };
 
     update_manifest_all_fields(
         &base_pkg_info.url,
@@ -460,7 +448,8 @@ pub async fn filter_compatible_pkgs_to_candidates(
 
             if is_verbose(tman_config.clone()).await {
                 out.normal_line(&format!(
-                    "The existed {} package {} is compatible with the current system.",
+                    "The existed {} package {} is compatible with the current \
+                     system.",
                     get_pkg_type(existed_pkg),
                     get_pkg_name(existed_pkg)
                 ));
@@ -475,8 +464,8 @@ pub async fn filter_compatible_pkgs_to_candidates(
             // it should not be considered as a candidate.
             if is_verbose(tman_config.clone()).await {
                 out.normal_line(&format!(
-                    "The existed {} package {} is not compatible with the current \
-                system.",
+                    "The existed {} package {} is not compatible with the \
+                     current system.",
                     get_pkg_type(existed_pkg),
                     get_pkg_name(existed_pkg)
                 ));
@@ -520,7 +509,7 @@ pub fn compare_solver_results_with_installed_pkgs(
     if !untracked_local_pkgs.is_empty() {
         out.normal_line(&format!(
             "{}  The following local packages do not appear in the dependency \
-            tree:",
+             tree:",
             Emoji("💡", "")
         ));
         for pkg in untracked_local_pkgs {

@@ -242,12 +242,10 @@ mod tests {
         let designer_state = Arc::new(designer_state);
 
         let app = test::init_service(
-            App::new()
-                .app_data(web::Data::new(designer_state.clone()))
-                .route(
-                    "/api/designer/v1/graphs/connections/delete",
-                    web::post().to(delete_graph_connection_endpoint),
-                ),
+            App::new().app_data(web::Data::new(designer_state.clone())).route(
+                "/api/designer/v1/graphs/connections/delete",
+                web::post().to(delete_graph_connection_endpoint),
+            ),
         )
         .await;
 
@@ -324,9 +322,13 @@ mod tests {
         let expected_property: serde_json::Value =
             serde_json::from_str(expected_property_json_str).unwrap();
 
-        assert_eq!(updated_property, expected_property,
-           "Property file doesn't match expected content.\nExpected:\n{}\nActual:\n{}",
-           serde_json::to_string_pretty(&expected_property).unwrap(),
-           serde_json::to_string_pretty(&updated_property).unwrap());
+        assert_eq!(
+            updated_property,
+            expected_property,
+            "Property file doesn't match expected \
+             content.\nExpected:\n{}\nActual:\n{}",
+            serde_json::to_string_pretty(&expected_property).unwrap(),
+            serde_json::to_string_pretty(&updated_property).unwrap()
+        );
     }
 }

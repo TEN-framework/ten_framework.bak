@@ -100,15 +100,12 @@ mod tests {
         assert_eq!(graphs.data.len(), expected_graphs.len());
 
         // Create a map of expected graphs by name for easier lookup.
-        let expected_map: HashMap<_, _> = expected_graphs
-            .iter()
-            .map(|g| (g.name.clone(), g))
-            .collect();
+        let expected_map: HashMap<_, _> =
+            expected_graphs.iter().map(|g| (g.name.clone(), g)).collect();
 
         for actual in graphs.data.iter() {
-            let expected = expected_map
-                .get(&actual.name)
-                .expect("Missing expected graph");
+            let expected =
+                expected_map.get(&actual.name).expect("Missing expected graph");
             assert_eq!(actual.name, expected.name);
             assert_eq!(actual.auto_start, expected.auto_start);
             assert_eq!(actual.base_dir, expected.base_dir);

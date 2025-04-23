@@ -41,18 +41,12 @@ fn get_args_cfg() -> ArgsCfg {
             ]
             .to_vec(),
         },
-        os: ArgCfg {
-            possible_values: ["linux", "mac", "win"].to_vec(),
-        },
+        os: ArgCfg { possible_values: ["linux", "mac", "win"].to_vec() },
         arch: ArgCfg {
             possible_values: ["x86", "x64", "arm", "arm64"].to_vec(),
         },
-        build_type: ArgCfg {
-            possible_values: ["debug", "release"].to_vec(),
-        },
-        _language: ArgCfg {
-            possible_values: ["cpp", "go"].to_vec(),
-        },
+        build_type: ArgCfg { possible_values: ["debug", "release"].to_vec() },
+        _language: ArgCfg { possible_values: ["cpp", "go"].to_vec() },
     }
 }
 

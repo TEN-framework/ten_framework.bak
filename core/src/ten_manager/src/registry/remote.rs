@@ -148,11 +148,14 @@ async fn get_package_upload_info(
                 let mut headers = HeaderMap::new();
 
                 // Check if the package requires admin token based on its tags.
-                let requires_admin = requires_admin_token_based_on_tags(&pkg_info);
+                let requires_admin =
+                    requires_admin_token_based_on_tags(&pkg_info);
 
                 if requires_admin {
                     // If a tag starts with "ten:", we must use admin_token.
-                    if let Some(admin_token) = &tman_config.read().await.admin_token {
+                    if let Some(admin_token) =
+                        &tman_config.read().await.admin_token
+                    {
                         let basic_token = format!("Basic {}", admin_token);
                         headers.insert(
                             ADMIN_TOKEN,
@@ -166,9 +169,15 @@ async fn get_package_upload_info(
                         );
                     } else {
                         if is_verbose(tman_config.clone()).await {
-                            out.normal_line("Admin token is required for packages with 'ten:' tags but is missing");
+                            out.normal_line(
+                                "Admin token is required for packages with \
+                                 'ten:' tags but is missing",
+                            );
                         }
-                        return Err(anyhow!("Admin token is required for packages with 'ten:' tags but is missing"));
+                        return Err(anyhow!(
+                            "Admin token is required for packages with 'ten:' \
+                             tags but is missing"
+                        ));
                     }
                 }
 
@@ -332,9 +341,10 @@ async fn ack_of_uploading(
                         Ok(())
                     } else {
                         Err(anyhow!(
-                    "Failed to acknowledge uploading with HTTP status {}",
-                    resp.status()
-                ))
+                            "Failed to acknowledge uploading with HTTP status \
+                             {}",
+                            resp.status()
+                        ))
                     }
                 }
                 Err(e) => Err(e.into()),
@@ -425,10 +435,11 @@ pub async fn get_package(
         // `temp_file`.
         if is_verbose(tman_config.clone()).await {
             out.normal_line(&format!(
-              "{}  Found the package file ({}) in the package cache, using it directly.",
-              Emoji("🚀", ":-)"),
-              cached_file_path.to_string_lossy()
-          ));
+                "{}  Found the package file ({}) in the package cache, using \
+                 it directly.",
+                Emoji("🚀", ":-)"),
+                cached_file_path.to_string_lossy()
+            ));
         }
 
         fs::copy(&cached_file_path, temp_file.path()).with_context(|| {
@@ -654,7 +665,6 @@ pub async fn get_package_list(
             let name = name.clone();
             let tman_config = tman_config.clone();
 
-
             Box::pin(async move {
                 let mut results = Vec::new();
                 // If page is specified, we'll fetch only that page.
@@ -663,8 +673,10 @@ pub async fn get_package_list(
                 let mut total_size;
                 // Determine if we should fetch multiple pages or just one.
                 let fetch_single_page = page.is_some();
-                // Use provided page_size or default to DEFAULT_REGISTRY_PAGE_SIZE.
-                let page_size_value = page_size.unwrap_or(DEFAULT_REGISTRY_PAGE_SIZE);
+                // Use provided page_size or default to
+                // DEFAULT_REGISTRY_PAGE_SIZE.
+                let page_size_value =
+                    page_size.unwrap_or(DEFAULT_REGISTRY_PAGE_SIZE);
 
                 loop {
                     // Build the URL with query parameters for pagination and
@@ -687,20 +699,34 @@ pub async fn get_package_list(
                         }
 
                         // Pagination parameters.
-                        query.append_pair("pageSize", &page_size_value.to_string())
+                        query
+                            .append_pair(
+                                "pageSize",
+                                &page_size_value.to_string(),
+                            )
                             .append_pair("page", &current_page.to_string());
                     } // query is dropped here
 
                     if is_verbose(tman_config.clone()).await {
                         let query_info = format!(
                             "{}{}{}",
-                            pkg_type.as_ref().map_or("".to_string(), |pt| format!("type={} ", pt)),
-                            name.as_ref().map_or("".to_string(), |n| format!("name={} ", n)),
-                            version_req.as_ref().map_or("".to_string(), |vr| format!("version={}", vr))
+                            pkg_type.as_ref().map_or(
+                                "".to_string(),
+                                |pt| format!("type={} ", pt)
+                            ),
+                            name.as_ref().map_or("".to_string(), |n| format!(
+                                "name={} ",
+                                n
+                            )),
+                            version_req.as_ref().map_or(
+                                "".to_string(),
+                                |vr| format!("version={}", vr)
+                            )
                         );
 
                         out.normal_line(&format!(
-                            "Fetching page {} with page size {} and query params: {}",
+                            "Fetching page {} with page size {} and query \
+                             params: {}",
                             current_page,
                             page_size_value,
                             query_info.trim()
@@ -722,7 +748,7 @@ pub async fn get_package_list(
                             return Err(anyhow::anyhow!(
                                 "Request failed: {}",
                                 e
-                            ))
+                            ));
                         }
                     };
 
@@ -743,7 +769,7 @@ pub async fn get_package_list(
                             return Err(anyhow::anyhow!(
                                 "Failed to parse JSON response: {}",
                                 e
-                            ))
+                            ));
                         }
                     };
 
@@ -756,24 +782,33 @@ pub async fn get_package_list(
 
                     // Update total size and collect packages.
                     total_size = api_response.data.total_size as usize;
-                    let packages_is_empty = api_response.data.packages.is_empty();
+                    let packages_is_empty =
+                        api_response.data.packages.is_empty();
                     results.extend(api_response.data.packages);
 
                     if is_verbose(tman_config.clone()).await {
                         out.normal_line(&format!(
-                            "Fetched {} packages (total: {}) at page {} for {}:{}@{}",
+                            "Fetched {} packages (total: {}) at page {} for \
+                             {}:{}@{}",
                             results.len(),
                             total_size,
                             current_page,
-                            pkg_type.as_ref().map_or("".to_string(), |pt| pt.to_string()),
+                            pkg_type
+                                .as_ref()
+                                .map_or("".to_string(), |pt| pt.to_string()),
                             name.as_ref().map_or("".to_string(), |n| n.clone()),
-                            version_req.as_ref().map_or("".to_string(), |vr| vr.to_string())
+                            version_req
+                                .as_ref()
+                                .map_or("".to_string(), |vr| vr.to_string())
                         ));
                     }
 
                     // If we're only fetching a single page or we've reached the
                     // end, break the loop.
-                    if fetch_single_page || results.len() >= total_size || packages_is_empty {
+                    if fetch_single_page
+                        || results.len() >= total_size
+                        || packages_is_empty
+                    {
                         break;
                     }
 

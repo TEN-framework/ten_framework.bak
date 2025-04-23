@@ -86,17 +86,11 @@ pub async fn get_help_text_endpoint(
     let help_text = get_help_text_for_key(&key.to_string(), locale);
 
     if let Some((text, used_locale)) = help_text {
-        let response_data = GetHelpTextResponseData {
-            key: *key,
-            locale: used_locale,
-            text,
-        };
+        let response_data =
+            GetHelpTextResponseData { key: *key, locale: used_locale, text };
 
-        let api_response = ApiResponse {
-            status: Status::Ok,
-            data: response_data,
-            meta: None,
-        };
+        let api_response =
+            ApiResponse { status: Status::Ok, data: response_data, meta: None };
 
         Ok(HttpResponse::Ok().json(api_response))
     } else {

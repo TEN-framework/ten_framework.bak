@@ -48,10 +48,7 @@ pub fn extract_solver_results_from_raw_solver_results(
             let semver = semver_str.parse::<Version>()?;
 
             for candidate in all_candidates
-                .get(&PkgTypeAndName {
-                    pkg_type,
-                    name: name.to_string(),
-                })
+                .get(&PkgTypeAndName { pkg_type, name: name.to_string() })
                 .unwrap()
             {
                 if candidate.1.manifest.type_and_name.pkg_type != pkg_type
@@ -125,9 +122,12 @@ pub async fn install_solver_results_in_app_folder(
 
     if let Some(bar) = &bar {
         bar.set_style(
-        ProgressStyle::default_bar()
-            .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos:>7}/{len:7} {msg}")?
-            .progress_chars("#>-"),
+            ProgressStyle::default_bar()
+                .template(
+                    "{spinner:.green} [{elapsed_precise}] \
+                     [{bar:40.cyan/blue}] {pos:>7}/{len:7} {msg}",
+                )?
+                .progress_chars("#>-"),
         );
     }
 

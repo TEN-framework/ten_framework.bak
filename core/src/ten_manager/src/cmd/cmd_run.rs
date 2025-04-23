@@ -58,10 +58,7 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<RunCommand> {
         .map(|vals| vals.map(|s| s.to_string()).collect())
         .unwrap_or_default();
 
-    Ok(RunCommand {
-        script_name,
-        extra_args,
-    })
+    Ok(RunCommand { script_name, extra_args })
 }
 
 pub async fn execute_cmd(
@@ -102,7 +99,7 @@ pub async fn execute_cmd(
             return Err(anyhow!(
                 "No 'scripts' field found in {}",
                 manifest_path.display()
-            ))
+            ));
         }
     };
 
@@ -129,7 +126,7 @@ pub async fn execute_cmd(
                 "Script '{}' not found in '{}'",
                 &cmd.script_name,
                 SCRIPTS
-            ))
+            ));
         }
     };
 

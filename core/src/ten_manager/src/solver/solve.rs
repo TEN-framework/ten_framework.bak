@@ -94,9 +94,8 @@ async fn print_configuration(
 ) {
     let configuration_type = conf.configuration_type(key).unwrap();
     if configuration_type.contains(ConfigurationType::VALUE) {
-        let _value = conf
-            .value_get(key)
-            .expect("Failed to retrieve statistics value.");
+        let _value =
+            conf.value_get(key).expect("Failed to retrieve statistics value.");
     } else if configuration_type.contains(ConfigurationType::ARRAY) {
         let size = conf
             .array_size(key)
@@ -240,8 +239,7 @@ async fn solve(
 
         // Enable full statistics.
         let stats_key = conf.map_at(root_key, "stats").unwrap();
-        conf.value_set(stats_key, "2")
-            .expect("Failed to set stats_key to 2.");
+        conf.value_set(stats_key, "2").expect("Failed to set stats_key to 2.");
 
         // Configure the first solver to use the berkmin heuristic.
         let mut solver_key = conf.map_at(root_key, "solver").unwrap();
@@ -258,10 +256,8 @@ async fn solve(
 
     // Add a logic program to the base part.
     // i.e., clingo_control_add
-    ctl.add("main", &[], main_program)
-        .expect("Failed to add main.lp");
-    ctl.add("display", &[], display_program)
-        .expect("Failed to add display.lp");
+    ctl.add("main", &[], main_program).expect("Failed to add main.lp");
+    ctl.add("display", &[], display_program).expect("Failed to add display.lp");
     ctl.add("base", &[], input).expect("Failed to add input.lp");
 
     // Ground the parts.
@@ -271,8 +267,7 @@ async fn solve(
     let base_part = Part::new("base", vec![]).unwrap();
 
     let parts = vec![main_part, display_part, base_part];
-    ctl.ground(&parts)
-        .expect("Failed to ground a logic program.");
+    ctl.ground(&parts).expect("Failed to ground a logic program.");
 
     // Solving. Get a solve handle.
     // i.e., clingo_control_solve
@@ -327,9 +322,8 @@ async fn solve(
 
     // Close the solve handle.
     // i.e., clingo_solve_handle_get
-    let _result = handle
-        .get()
-        .expect("Failed to get result from solve handle.");
+    let _result =
+        handle.get().expect("Failed to get result from solve handle.");
 
     // Free the solve handle.
     // i.e., clingo_solve_handle_close
@@ -353,10 +347,7 @@ fn create_input_str_for_dependency_relationship(
         let pkg_type_and_name = match &dep_relationship.dependency {
             ManifestDependency::RegistryDependency {
                 pkg_type, name, ..
-            } => PkgTypeAndName {
-                pkg_type: *pkg_type,
-                name: name.clone(),
-            },
+            } => PkgTypeAndName { pkg_type: *pkg_type, name: name.clone() },
             ManifestDependency::LocalDependency { path, base_dir } => {
                 // Get type and name from the manifest.
                 let abs_path = std::path::Path::new(base_dir).join(path);
@@ -390,14 +381,15 @@ fn create_input_str_for_dependency_relationship(
 
                 if version_matches {
                     input_str.push_str(&format!(
-        "depends_on_declared(\"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\").\n",
-        dep_relationship.type_and_name.pkg_type,
-        dep_relationship.type_and_name.name,
-        dep_relationship.version,
-        candidate.1.manifest.type_and_name.pkg_type,
-        candidate.1.manifest.type_and_name.name,
-        candidate.1.manifest.version,
-                  ));
+                        "depends_on_declared(\"{}\", \"{}\", \"{}\", \"{}\", \
+                         \"{}\", \"{}\").\n",
+                        dep_relationship.type_and_name.pkg_type,
+                        dep_relationship.type_and_name.name,
+                        dep_relationship.version,
+                        candidate.1.manifest.type_and_name.pkg_type,
+                        candidate.1.manifest.type_and_name.name,
+                        candidate.1.manifest.version,
+                    ));
                 }
             }
         } else {
@@ -443,10 +435,7 @@ fn create_input_str_for_pkg_info_dependencies(
                     pkg_type,
                     name,
                     ..
-                } => PkgTypeAndName {
-                    pkg_type: *pkg_type,
-                    name: name.clone(),
-                },
+                } => PkgTypeAndName { pkg_type: *pkg_type, name: name.clone() },
                 ManifestDependency::LocalDependency { path, base_dir } => {
                     // Get type and name from the manifest.
                     let abs_path = std::path::Path::new(base_dir).join(path);
@@ -483,14 +472,15 @@ fn create_input_str_for_pkg_info_dependencies(
 
                     if version_matches {
                         input_str.push_str(&format!(
-        "depends_on_declared(\"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\").\n",
-        pkg_info.manifest.type_and_name.pkg_type,
-        pkg_info.manifest.type_and_name.name,
-        pkg_info.manifest.version,
-        candidate.1.manifest.type_and_name.pkg_type,
-        candidate.1.manifest.type_and_name.name,
-        candidate.1.manifest.version,
-                                    ));
+                            "depends_on_declared(\"{}\", \"{}\", \"{}\", \
+                             \"{}\", \"{}\", \"{}\").\n",
+                            pkg_info.manifest.type_and_name.pkg_type,
+                            pkg_info.manifest.type_and_name.name,
+                            pkg_info.manifest.version,
+                            candidate.1.manifest.type_and_name.pkg_type,
+                            candidate.1.manifest.type_and_name.name,
+                            candidate.1.manifest.version,
+                        ));
 
                         create_input_str_for_pkg_info_dependencies(
                             input_str,
@@ -565,11 +555,8 @@ fn create_input_str_for_all_possible_pkgs_info(
     locked_pkgs: Option<&HashMap<PkgTypeAndName, PkgInfo>>,
 ) -> Result<()> {
     for candidates in all_candidates {
-        let mut candidates_vec: Vec<PkgBasicInfo> = candidates
-            .1
-            .values()
-            .map(|pkg_info| pkg_info.into())
-            .collect();
+        let mut candidates_vec: Vec<PkgBasicInfo> =
+            candidates.1.values().map(|pkg_info| pkg_info.into()).collect();
 
         // The sorting below places the larger versions at the front, thus
         // having smaller indexes. This is correct because, in the Clingo

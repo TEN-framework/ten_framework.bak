@@ -321,11 +321,7 @@ impl<'a> From<&'a PkgInfo> for ManifestLockItem {
             } else {
                 Some(dependencies)
             },
-            supports: if supports.is_empty() {
-                None
-            } else {
-                Some(supports)
-            },
+            supports: if supports.is_empty() { None } else { Some(supports) },
             path: pkg_info.local_dependency_path.clone(),
         }
     }

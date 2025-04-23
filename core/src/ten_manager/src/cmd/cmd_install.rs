@@ -103,7 +103,10 @@ pub fn create_sub_cmd(args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
         )
         .arg(
             Arg::new("PACKAGE_NAME")
-                .help("The name of the package with optional version requirement (e.g., foo@1.0.0)")
+                .help(
+                    "The name of the package with optional version \
+                     requirement (e.g., foo@1.0.0)",
+                )
                 .required(false),
         )
         .arg(
@@ -194,7 +197,8 @@ pub fn parse_sub_cmd(sub_cmd_args: &ArgMatches) -> Result<InstallCommand> {
 
             if sub_cmd_args.get_one::<String>("PACKAGE_NAME").is_some() {
                 return Err(anyhow::anyhow!(
-                    "PACKAGE_NAME is not required when a local path is specified."
+                    "PACKAGE_NAME is not required when a local path is \
+                     specified."
                 ));
             }
         } else {
@@ -531,9 +535,10 @@ pub async fn execute_cmd(
             || local_version_str.contains(",")
         {
             return Err(anyhow!(
-                    "Invalid version requirement '{}' in local package manifest: contains forbidden characters (||, whitespace, or ,)",
-                    local_version_str
-                ));
+                "Invalid version requirement '{}' in local package manifest: \
+                 contains forbidden characters (||, whitespace, or ,)",
+                local_version_str
+            ));
         }
         let installing_pkg_version_req = VersionReq::parse(&local_version_str)?;
 
@@ -590,8 +595,8 @@ pub async fn execute_cmd(
     }
 
     out.normal_line(&format!(
-        "{}  Attempting to retrieve information about locked packages \
-from manifest-lock.json...",
+        "{}  Attempting to retrieve information about locked packages from \
+         manifest-lock.json...",
         Emoji("📜", "")
     ));
 
@@ -609,9 +614,7 @@ from manifest-lock.json...",
         tman_config.clone(),
         &command_data.support,
         initial_pkgs_to_find_candidates,
-        dep_relationship_from_cmd_line
-            .as_ref()
-            .map(|rel| &rel.dependency),
+        dep_relationship_from_cmd_line.as_ref().map(|rel| &rel.dependency),
         &all_compatible_installed_pkgs,
         all_candidates,
         locked_pkgs.as_ref(),
@@ -681,8 +684,8 @@ from manifest-lock.json...",
             if out.is_interactive() {
                 // "y" for continuing to install, "n" for stopping.
                 let ans = Confirm::new(
-                    "Warning!!! Some local packages will be overwritten, \
-do you want to continue?",
+                    "Warning!!! Some local packages will be overwritten, do \
+                     you want to continue?",
                 )
                 .with_default(false)
                 .prompt();

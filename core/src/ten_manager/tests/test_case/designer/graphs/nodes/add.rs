@@ -401,12 +401,10 @@ mod tests {
         let designer_state = Arc::new(designer_state);
 
         let app = test::init_service(
-            App::new()
-                .app_data(web::Data::new(designer_state.clone()))
-                .route(
-                    "/api/designer/v1/graphs/nodes/add",
-                    web::post().to(add_graph_node_endpoint),
-                ),
+            App::new().app_data(web::Data::new(designer_state.clone())).route(
+                "/api/designer/v1/graphs/nodes/add",
+                web::post().to(add_graph_node_endpoint),
+            ),
         )
         .await;
 
@@ -530,12 +528,10 @@ mod tests {
         // First add a node, then delete it.
         // Setup the add endpoint.
         let app_add = test::init_service(
-            App::new()
-                .app_data(web::Data::new(designer_state.clone()))
-                .route(
-                    "/api/designer/v1/graphs/nodes/add",
-                    web::post().to(add_graph_node_endpoint),
-                ),
+            App::new().app_data(web::Data::new(designer_state.clone())).route(
+                "/api/designer/v1/graphs/nodes/add",
+                web::post().to(add_graph_node_endpoint),
+            ),
         )
         .await;
 
@@ -563,8 +559,11 @@ mod tests {
         let updated_property_json_str =
             std::fs::read_to_string(&property_path).unwrap();
 
-        let expected_property_json_str =
-            include_str!("../../../../test_data/expected_property_after_adding_in_test_delete_graph_node_success.json");
+        let expected_property_json_str = include_str!(
+            "../../../../test_data/\
+             expected_property_after_adding_in_test_delete_graph_node_success.\
+             json"
+        );
 
         // Parse the contents as JSON for proper comparison.
         let updated_property: serde_json::Value =
@@ -662,12 +661,10 @@ mod tests {
         // First add a node, then delete it.
         // Setup the add endpoint.
         let app_add = test::init_service(
-            App::new()
-                .app_data(web::Data::new(designer_state.clone()))
-                .route(
-                    "/api/designer/v1/graphs/nodes/add",
-                    web::post().to(add_graph_node_endpoint),
-                ),
+            App::new().app_data(web::Data::new(designer_state.clone())).route(
+                "/api/designer/v1/graphs/nodes/add",
+                web::post().to(add_graph_node_endpoint),
+            ),
         )
         .await;
 

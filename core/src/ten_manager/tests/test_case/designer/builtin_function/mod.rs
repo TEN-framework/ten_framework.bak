@@ -86,5 +86,8 @@ async fn test_cmd_builtin_function_websocket_connection() {
         "Incorrect upgrade header value"
     );
 
-    println!("WebSocket connection was successfully established (validated by checking response status and headers)");
+    println!(
+        "WebSocket connection was successfully established (validated by \
+         checking response status and headers)"
+    );
 }

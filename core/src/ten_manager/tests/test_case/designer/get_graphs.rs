@@ -43,23 +43,38 @@ async fn test_cmd_designer_graphs_app_property_not_exist() {
     };
 
     let all_pkgs_json_str = vec![
-      (
-          "tests/test_data/cmd_designer_graphs_app_property_not_exist".to_string(),
-          include_str!("../../test_data/cmd_designer_graphs_app_property_not_exist/manifest.json").to_string(),
-          "{}".to_string(),
-      ),
-      (
-          "tests/test_data/cmd_designer_graphs_app_property_not_exist/ten_packages/extension/addon_a".to_string(),
-          include_str!("../../test_data/cmd_designer_graphs_app_property_not_exist/ten_packages/extension/addon_a/manifest.json")
-              .to_string(),
-          "{}".to_string(),
-      ),
-      (
-          "tests/test_data/cmd_designer_graphs_app_property_not_exist/ten_packages/extension/addon_b".to_string(),
-          include_str!("../../test_data/cmd_designer_graphs_app_property_not_exist/ten_packages/extension/addon_b/manifest.json")
-              .to_string(),
-          "{}".to_string(),
-      ),
+        (
+            "tests/test_data/cmd_designer_graphs_app_property_not_exist"
+                .to_string(),
+            include_str!(
+                "../../test_data/cmd_designer_graphs_app_property_not_exist/\
+                 manifest.json"
+            )
+            .to_string(),
+            "{}".to_string(),
+        ),
+        (
+            "tests/test_data/cmd_designer_graphs_app_property_not_exist/\
+             ten_packages/extension/addon_a"
+                .to_string(),
+            include_str!(
+                "../../test_data/cmd_designer_graphs_app_property_not_exist/\
+                 ten_packages/extension/addon_a/manifest.json"
+            )
+            .to_string(),
+            "{}".to_string(),
+        ),
+        (
+            "tests/test_data/cmd_designer_graphs_app_property_not_exist/\
+             ten_packages/extension/addon_b"
+                .to_string(),
+            include_str!(
+                "../../test_data/cmd_designer_graphs_app_property_not_exist/\
+                 ten_packages/extension/addon_b/manifest.json"
+            )
+            .to_string(),
+            "{}".to_string(),
+        ),
     ];
 
     {
@@ -117,20 +132,39 @@ async fn test_cmd_designer_connections_has_msg_conversion() {
 
     let all_pkgs_json_str = vec![
         (
-            "tests/test_data/cmd_designer_connections_has_msg_conversion".to_string(),
-            include_str!("../../test_data/cmd_designer_connections_has_msg_conversion/manifest.json").to_string(),
-            include_str!("../../test_data/cmd_designer_connections_has_msg_conversion/property.json").to_string(),
+            "tests/test_data/cmd_designer_connections_has_msg_conversion"
+                .to_string(),
+            include_str!(
+                "../../test_data/cmd_designer_connections_has_msg_conversion/\
+                 manifest.json"
+            )
+            .to_string(),
+            include_str!(
+                "../../test_data/cmd_designer_connections_has_msg_conversion/\
+                 property.json"
+            )
+            .to_string(),
         ),
         (
-            "tests/test_data/cmd_designer_connections_has_msg_conversion/ten_packages/extension/addon_a".to_string(),
-            include_str!("../../test_data/cmd_designer_connections_has_msg_conversion/ten_packages/extension/addon_a/manifest.json")
+            "tests/test_data/cmd_designer_connections_has_msg_conversion/\
+             ten_packages/extension/addon_a"
                 .to_string(),
+            include_str!(
+                "../../test_data/cmd_designer_connections_has_msg_conversion/\
+                 ten_packages/extension/addon_a/manifest.json"
+            )
+            .to_string(),
             "{}".to_string(),
         ),
         (
-            "tests/test_data/cmd_designer_connections_has_msg_conversion/ten_packages/extension/addon_b".to_string(),
-            include_str!("../../test_data/cmd_designer_connections_has_msg_conversion/ten_packages/extension/addon_b/manifest.json")
+            "tests/test_data/cmd_designer_connections_has_msg_conversion/\
+             ten_packages/extension/addon_b"
                 .to_string(),
+            include_str!(
+                "../../test_data/cmd_designer_connections_has_msg_conversion/\
+                 ten_packages/extension/addon_b/manifest.json"
+            )
+            .to_string(),
             "{}".to_string(),
         ),
     ];
@@ -149,12 +183,10 @@ async fn test_cmd_designer_connections_has_msg_conversion() {
 
     let designer_state = Arc::new(designer_state);
     let app = test::init_service(
-        App::new()
-            .app_data(web::Data::new(designer_state.clone()))
-            .route(
-                "/api/designer/v1/graphs/connections",
-                web::post().to(get_graph_connections_endpoint),
-            ),
+        App::new().app_data(web::Data::new(designer_state.clone())).route(
+            "/api/designer/v1/graphs/connections",
+            web::post().to(get_graph_connections_endpoint),
+        ),
     )
     .await;
 

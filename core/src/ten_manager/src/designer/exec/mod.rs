@@ -55,11 +55,7 @@ pub struct WsRunCmd {
 
 impl WsRunCmd {
     pub fn new(cmd_parser: CmdParser) -> Self {
-        Self {
-            child: None,
-            cmd_parser,
-            working_directory: None,
-        }
+        Self { child: None, cmd_parser, working_directory: None }
     }
 }
 

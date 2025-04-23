@@ -157,9 +157,8 @@ mod tests {
         .await;
 
         // Use a random UUID that doesn't exist in the graphs_cache.
-        let request_payload = GetGraphNodesRequestPayload {
-            graph_id: Uuid::new_v4(),
-        };
+        let request_payload =
+            GetGraphNodesRequestPayload { graph_id: Uuid::new_v4() };
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/graphs/nodes")

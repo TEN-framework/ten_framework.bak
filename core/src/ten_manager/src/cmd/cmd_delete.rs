@@ -48,16 +48,8 @@ pub fn create_sub_cmd(args_cfg: &crate::cmd_line::ArgsCfg) -> Command {
                 .help("The name of the package")
                 .required(true),
         )
-        .arg(
-            Arg::new("VERSION")
-                .help("The name of the package")
-                .required(true),
-        )
-        .arg(
-            Arg::new("HASH")
-                .help("The hash of the package")
-                .required(true),
-        )
+        .arg(Arg::new("VERSION").help("The name of the package").required(true))
+        .arg(Arg::new("HASH").help("The hash of the package").required(true))
 }
 
 pub fn parse_sub_cmd(

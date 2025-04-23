@@ -30,9 +30,9 @@ pub fn run_installation(
     // Create a channel for cross-thread communication.
     let (sender, receiver) = mpsc::channel();
 
-    let output_channel = Arc::new(Box::new(TmanOutputChannel {
-        sender: sender.clone(),
-    }) as Box<dyn TmanOutput>);
+    let output_channel =
+        Arc::new(Box::new(TmanOutputChannel { sender: sender.clone() })
+            as Box<dyn TmanOutput>);
 
     // Run the installation process in a new thread.
     //
@@ -86,11 +86,8 @@ pub fn run_installation(
         // Send the completion status to the main thread (an actix worker
         // thread).
         let exit_code = if result.is_ok() { 0 } else { -1 };
-        let error_message = if let Err(err) = result {
-            Some(err.to_string())
-        } else {
-            None
-        };
+        let error_message =
+            if let Err(err) = result { Some(err.to_string()) } else { None };
 
         let _ = sender.send(format!(
             "EXIT:{}:{}",

@@ -179,9 +179,7 @@ mod tests {
 
         let req = test::TestRequest::post()
             .uri("/api/designer/v1/dir-list")
-            .set_json(ListDirRequestPayload {
-                path: non_existing_path,
-            })
+            .set_json(ListDirRequestPayload { path: non_existing_path })
             .to_request();
 
         let resp = test::call_service(&app, req).await;

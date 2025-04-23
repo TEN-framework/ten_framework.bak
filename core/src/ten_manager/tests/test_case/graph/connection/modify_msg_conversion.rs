@@ -33,7 +33,8 @@ mod tests {
 
         // Expected JSON after modifying the msg_conversion.
         let expected_json = include_str!(
-            "../../../test_data/expected_property_with_modified_msg_conversion.json"
+            "../../../test_data/\
+             expected_property_with_modified_msg_conversion.json"
         );
 
         // Write the initial JSON to property.json.

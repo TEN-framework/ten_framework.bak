@@ -23,11 +23,8 @@ pub async fn get_preferences_schema_endpoint(
         .map_err(actix_web::error::ErrorInternalServerError)?;
 
     let response_data = GetPreferencesSchemaResponseData { schema };
-    let response = ApiResponse {
-        status: Status::Ok,
-        data: response_data,
-        meta: None,
-    };
+    let response =
+        ApiResponse { status: Status::Ok, data: response_data, meta: None };
 
     Ok(HttpResponse::Ok().json(response))
 }

@@ -45,8 +45,9 @@ pub fn parse_pkg_name_version_req(
             || parts[1].contains(",")
         {
             return Err(anyhow!(
-              "Invalid version requirement '{}' in package name version string: contains forbidden characters (||, whitespace, or ,)",
-          parts[1]
+                "Invalid version requirement '{}' in package name version \
+                 string: contains forbidden characters (||, whitespace, or ,)",
+                parts[1]
             ));
         }
 
@@ -88,11 +89,8 @@ pub async fn check_update() -> Result<(bool, String), String> {
         .json()
         .await
         .map_err(|e| format!("Failed to parse update information: {}", e))?;
-    let latest_version = json
-        .get("tag_name")
-        .and_then(|v| v.as_str())
-        .unwrap_or("")
-        .to_string();
+    let latest_version =
+        json.get("tag_name").and_then(|v| v.as_str()).unwrap_or("").to_string();
 
     if latest_version.is_empty() {
         return Err("Failed to get the latest version information.".to_string());

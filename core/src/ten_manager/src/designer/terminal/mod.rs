@@ -46,9 +46,7 @@ struct WsProcessor {
 
 impl WsProcessor {
     fn new(path: String) -> Self {
-        Self {
-            pty: Arc::new(Mutex::new(PtyManager::new(path))),
-        }
+        Self { pty: Arc::new(Mutex::new(PtyManager::new(path))) }
     }
 }
 
@@ -102,24 +100,26 @@ impl Actor for WsProcessor {
 
         let addr = ctx.address();
 
-        std::thread::spawn(move || loop {
-            // Continue to get data from pty.
-            match rx.recv() {
-                Ok(msg) => {
-                    let should_exit = matches!(msg, PtyMessage::Exit(_));
+        std::thread::spawn(move || {
+            loop {
+                // Continue to get data from pty.
+                match rx.recv() {
+                    Ok(msg) => {
+                        let should_exit = matches!(msg, PtyMessage::Exit(_));
 
-                    // Re-send the data to the actor, the actual logic is done
-                    // in `handle` function.
-                    addr.do_send(msg);
+                        // Re-send the data to the actor, the actual logic is
+                        // done in `handle` function.
+                        addr.do_send(msg);
 
-                    // If its the Exit message, exit the loop.
-                    if should_exit {
+                        // If its the Exit message, exit the loop.
+                        if should_exit {
+                            break;
+                        }
+                    }
+                    Err(e) => {
+                        println!("recv error: {}", e);
                         break;
                     }
-                }
-                Err(e) => {
-                    println!("recv error: {}", e);
-                    break;
                 }
             }
         });
@@ -154,7 +154,11 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsProcessor {
                                         .unwrap()
                                         .resize_pty(cols, rows)
                                         .unwrap_or_else(|_| {
-                                            println!("Failed to resize PTY to cols: {}, rows: {}", cols, rows)
+                                            println!(
+                                                "Failed to resize PTY to \
+                                                 cols: {}, rows: {}",
+                                                cols, rows
+                                            )
                                         });
                                 }
                             }
@@ -202,13 +206,9 @@ pub async fn ws_terminal_endpoint(
 ) -> Result<HttpResponse, Error> {
     // Extract 'path' from query parameters.
     let query = req.query_string();
-    let params: HashMap<_, _> = url::form_urlencoded::parse(query.as_bytes())
-        .into_owned()
-        .collect();
-    let path = params
-        .get("path")
-        .cloned()
-        .unwrap_or_else(|| "".to_string());
+    let params: HashMap<_, _> =
+        url::form_urlencoded::parse(query.as_bytes()).into_owned().collect();
+    let path = params.get("path").cloned().unwrap_or_else(|| "".to_string());
 
     ws::start(WsProcessor::new(path), &req, stream)
 }

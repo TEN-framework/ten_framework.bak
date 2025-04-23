@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use anyhow::Result;
 
 use ten_rust::{
-    base_dir_pkg_info::{PkgsInfoInApp},
+    base_dir_pkg_info::PkgsInfoInApp,
     graph::{
         connection::{GraphConnection, GraphDestination, GraphMessageFlow},
         msg_conversion::MsgAndResultConversion,
@@ -100,9 +100,16 @@ fn check_connection_exists(
                                     && dest.app == *dest_app
                                 {
                                     return Err(anyhow::anyhow!(
-                                      "Connection already exists: src:({:?}, {}), msg_type:{:?}, msg_name:{}, dest:({:?}, {})",
-                                      src_app, src_extension, msg_type, msg_name, dest_app, dest_extension
-                                  ));
+                                        "Connection already exists: \
+                                         src:({:?}, {}), msg_type:{:?}, \
+                                         msg_name:{}, dest:({:?}, {})",
+                                        src_app,
+                                        src_extension,
+                                        msg_type,
+                                        msg_name,
+                                        dest_app,
+                                        dest_extension
+                                    ));
                                 }
                             }
                         }
@@ -129,10 +136,11 @@ fn check_nodes_exist(
 
     if !src_node_exists {
         return Err(anyhow::anyhow!(
-              "Source node with extension '{}' and app '{:?}' not found in the graph",
-              src_extension,
-              src_app
-          ));
+            "Source node with extension '{}' and app '{:?}' not found in the \
+             graph",
+            src_extension,
+            src_app
+        ));
     }
 
     // Validate that destination node exists.
@@ -142,10 +150,11 @@ fn check_nodes_exist(
 
     if !dest_node_exists {
         return Err(anyhow::anyhow!(
-              "Destination node with extension '{}' and app '{:?}' not found in the graph",
-              dest_extension,
-              dest_app
-          ));
+            "Destination node with extension '{}' and app '{:?}' not found in \
+             the graph",
+            dest_extension,
+            dest_app
+        ));
     }
 
     Ok(())
@@ -217,10 +226,8 @@ pub fn graph_add_connection(
     }
 
     // Create a message flow.
-    let message_flow = GraphMessageFlow {
-        name: msg_name,
-        dest: vec![destination],
-    };
+    let message_flow =
+        GraphMessageFlow { name: msg_name, dest: vec![destination] };
 
     // Get or create a connection for the source node and add the message
     // flow.

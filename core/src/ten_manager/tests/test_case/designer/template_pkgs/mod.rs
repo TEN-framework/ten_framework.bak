@@ -37,12 +37,10 @@ async fn test_get_template_app_typescript() {
     let designer_state = Arc::new(designer_state);
 
     let app = test::init_service(
-        App::new()
-            .app_data(web::Data::new(designer_state.clone()))
-            .route(
-                "/api/designer/v1/template-pkgs",
-                web::post().to(get_template_endpoint),
-            ),
+        App::new().app_data(web::Data::new(designer_state.clone())).route(
+            "/api/designer/v1/template-pkgs",
+            web::post().to(get_template_endpoint),
+        ),
     )
     .await;
 
@@ -60,10 +58,7 @@ async fn test_get_template_app_typescript() {
         test::call_and_read_body_json(&app, req).await;
 
     assert_eq!(resp.status, Status::Ok);
-    assert_eq!(
-        resp.data.template_name,
-        vec![DEFAULT_APP_NODEJS.to_string()]
-    );
+    assert_eq!(resp.data.template_name, vec![DEFAULT_APP_NODEJS.to_string()]);
 }
 
 #[actix_web::test]
@@ -80,12 +75,10 @@ async fn test_get_template_extension_cpp() {
     let designer_state = Arc::new(designer_state);
 
     let app = test::init_service(
-        App::new()
-            .app_data(web::Data::new(designer_state.clone()))
-            .route(
-                "/api/designer/v1/template-pkgs",
-                web::post().to(get_template_endpoint),
-            ),
+        App::new().app_data(web::Data::new(designer_state.clone())).route(
+            "/api/designer/v1/template-pkgs",
+            web::post().to(get_template_endpoint),
+        ),
     )
     .await;
 
@@ -123,12 +116,10 @@ async fn test_get_template_unsupported() {
     let designer_state = Arc::new(designer_state);
 
     let app = test::init_service(
-        App::new()
-            .app_data(web::Data::new(designer_state.clone()))
-            .route(
-                "/api/designer/v1/template-pkgs",
-                web::post().to(get_template_endpoint),
-            ),
+        App::new().app_data(web::Data::new(designer_state.clone())).route(
+            "/api/designer/v1/template-pkgs",
+            web::post().to(get_template_endpoint),
+        ),
     )
     .await;
 

@@ -265,14 +265,7 @@ mod tests {
             let graph_info = graphs_cache.get(&graph_id).unwrap();
 
             // Assuming there's at least one node in the graph.
-            graph_info
-                .graph
-                .nodes
-                .first()
-                .unwrap()
-                .type_and_name
-                .name
-                .clone()
+            graph_info.graph.nodes.first().unwrap().type_and_name.name.clone()
         };
 
         // Try to replace a node with an invalid property (integer instead of
@@ -431,14 +424,7 @@ mod tests {
             let graph_info = graphs_cache.get(&graph_id).unwrap();
 
             // Assuming there's at least one node in the graph.
-            graph_info
-                .graph
-                .nodes
-                .first()
-                .unwrap()
-                .type_and_name
-                .name
-                .clone()
+            graph_info.graph.nodes.first().unwrap().type_and_name.name.clone()
         };
 
         // Try to replace a node with an invalid property (integer instead of
@@ -477,9 +463,7 @@ mod tests {
         let response: ErrorResponse = serde_json::from_str(body_str).unwrap();
         assert_eq!(response.status, Status::Fail);
         assert!(
-            response
-                .message
-                .contains("Failed to validate extension property")
+            response.message.contains("Failed to validate extension property")
                 || response.message.contains("Property validation failed")
         );
 

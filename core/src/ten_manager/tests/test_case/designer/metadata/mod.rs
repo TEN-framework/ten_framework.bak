@@ -94,9 +94,7 @@ async fn test_set_and_get_graph_ui() {
         y: 200,
     };
 
-    let graph_geometry = GraphGeometry {
-        nodes_geometry: vec![node_geometry],
-    };
+    let graph_geometry = GraphGeometry { nodes_geometry: vec![node_geometry] };
 
     // Create the set request payload.
     let set_payload = SetGraphUiRequestPayload {
@@ -169,10 +167,7 @@ async fn test_set_and_get_graph_ui() {
     assert_eq!(returned_geometry.nodes_geometry.len(), 1);
     assert_eq!(returned_geometry.nodes_geometry[0].x, 100);
     assert_eq!(returned_geometry.nodes_geometry[0].y, 200);
-    assert_eq!(
-        returned_geometry.nodes_geometry[0].extension,
-        "test_extension"
-    );
+    assert_eq!(returned_geometry.nodes_geometry[0].extension, "test_extension");
     assert_eq!(
         returned_geometry.nodes_geometry[0].app,
         Some("test_app".to_string())
@@ -192,9 +187,8 @@ async fn test_update_graph_ui() {
         y: 20,
     };
 
-    let initial_graph_geometry = GraphGeometry {
-        nodes_geometry: vec![initial_node_geometry],
-    };
+    let initial_graph_geometry =
+        GraphGeometry { nodes_geometry: vec![initial_node_geometry] };
 
     // Create updated geometry data.
     let updated_node_geometry = NodeGeometry {
@@ -204,19 +198,14 @@ async fn test_update_graph_ui() {
         y: 40,
     };
 
-    let updated_graph_geometry = GraphGeometry {
-        nodes_geometry: vec![updated_node_geometry],
-    };
+    let updated_graph_geometry =
+        GraphGeometry { nodes_geometry: vec![updated_node_geometry] };
 
     // Create a designer state with pre-filled graph_ui config.
     let mut graph_ui_config = GraphUiMetadata::default();
-    graph_ui_config
-        .graphs_geometry
-        .insert(graph_id, initial_graph_geometry);
+    graph_ui_config.graphs_geometry.insert(graph_id, initial_graph_geometry);
 
-    let tman_metadata = TmanMetadata {
-        graph_ui: graph_ui_config,
-    };
+    let tman_metadata = TmanMetadata { graph_ui: graph_ui_config };
 
     let designer_state = DesignerState {
         tman_config: Arc::new(tokio::sync::RwLock::new(TmanConfig::default())),
@@ -303,20 +292,14 @@ async fn test_get_nonexistent_graph_ui() {
         y: 200,
     };
 
-    let graph_geometry = GraphGeometry {
-        nodes_geometry: vec![node_geometry],
-    };
+    let graph_geometry = GraphGeometry { nodes_geometry: vec![node_geometry] };
 
     // Create a designer state with pre-filled graph_ui config for only one
     // graph.
     let mut graph_ui_config = GraphUiMetadata::default();
-    graph_ui_config
-        .graphs_geometry
-        .insert(existing_graph_id, graph_geometry);
+    graph_ui_config.graphs_geometry.insert(existing_graph_id, graph_geometry);
 
-    let tman_metadata = TmanMetadata {
-        graph_ui: graph_ui_config,
-    };
+    let tman_metadata = TmanMetadata { graph_ui: graph_ui_config };
 
     let designer_state = DesignerState {
         tman_config: Arc::new(tokio::sync::RwLock::new(TmanConfig::default())),
@@ -336,9 +319,8 @@ async fn test_get_nonexistent_graph_ui() {
     .await;
 
     // Make request for the nonexistent graph.
-    let get_payload = GetGraphUiRequestPayload {
-        graph_id: nonexistent_graph_id,
-    };
+    let get_payload =
+        GetGraphUiRequestPayload { graph_id: nonexistent_graph_id };
     let get_req = test::TestRequest::post()
         .uri("/graph-ui/get")
         .set_json(&get_payload)
@@ -355,9 +337,7 @@ async fn test_get_nonexistent_graph_ui() {
     assert!(get_result.data.graph_geometry.is_none());
 
     // Now check the existing graph.
-    let get_payload = GetGraphUiRequestPayload {
-        graph_id: existing_graph_id,
-    };
+    let get_payload = GetGraphUiRequestPayload { graph_id: existing_graph_id };
     let get_req = test::TestRequest::post()
         .uri("/graph-ui/get")
         .set_json(&get_payload)

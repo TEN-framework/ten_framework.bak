@@ -42,10 +42,7 @@ pub enum OutboundMsg {
     ErrorPartial { data: String },
 
     #[serde(rename = "exit")]
-    Exit {
-        code: i32,
-        error_message: Option<String>,
-    },
+    Exit { code: i32, error_message: Option<String> },
 }
 
 pub struct TmanOutputWs {
@@ -54,16 +51,14 @@ pub struct TmanOutputWs {
 
 impl TmanOutput for TmanOutputWs {
     fn normal_line(&self, text: &str) {
-        self.addr
-            .do_send(BuiltinFunctionOutput::NormalLine(text.to_string()));
+        self.addr.do_send(BuiltinFunctionOutput::NormalLine(text.to_string()));
     }
     fn normal_partial(&self, text: &str) {
         self.addr
             .do_send(BuiltinFunctionOutput::NormalPartial(text.to_string()));
     }
     fn error_line(&self, text: &str) {
-        self.addr
-            .do_send(BuiltinFunctionOutput::ErrorLine(text.to_string()));
+        self.addr.do_send(BuiltinFunctionOutput::ErrorLine(text.to_string()));
     }
     fn error_partial(&self, text: &str) {
         self.addr

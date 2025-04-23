@@ -39,11 +39,8 @@ pub async fn create_app_endpoint(
     request_payload: web::Json<CreateAppRequestPayload>,
     state: web::Data<Arc<DesignerState>>,
 ) -> Result<impl Responder, actix_web::Error> {
-    let CreateAppRequestPayload {
-        base_dir,
-        app_name,
-        template_name,
-    } = request_payload.into_inner();
+    let CreateAppRequestPayload { base_dir, app_name, template_name } =
+        request_payload.into_inner();
 
     // Validate base_dir exists.
     if !Path::new(&base_dir).exists() {
@@ -108,9 +105,7 @@ pub async fn create_app_endpoint(
 
             let response = ApiResponse {
                 status: Status::Ok,
-                data: CreateAppResponseData {
-                    app_path: app_path_str,
-                },
+                data: CreateAppResponseData { app_path: app_path_str },
                 meta: None,
             };
 

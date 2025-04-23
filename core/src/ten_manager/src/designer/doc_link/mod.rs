@@ -90,17 +90,11 @@ pub async fn get_doc_link_endpoint(
     let doc_link = get_doc_link_for_key(&key.to_string(), locale);
 
     if let Some((text, used_locale)) = doc_link {
-        let response_data = GetDocLinkResponseData {
-            key: *key,
-            locale: used_locale,
-            text,
-        };
+        let response_data =
+            GetDocLinkResponseData { key: *key, locale: used_locale, text };
 
-        let api_response = ApiResponse {
-            status: Status::Ok,
-            data: response_data,
-            meta: None,
-        };
+        let api_response =
+            ApiResponse { status: Status::Ok, data: response_data, meta: None };
 
         Ok(HttpResponse::Ok().json(api_response))
     } else {

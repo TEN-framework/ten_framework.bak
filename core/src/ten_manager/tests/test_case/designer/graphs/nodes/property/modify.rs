@@ -118,12 +118,10 @@ mod tests {
         let designer_state = Arc::new(designer_state);
 
         let app = test::init_service(
-            App::new()
-                .app_data(web::Data::new(designer_state.clone()))
-                .route(
-                    "/api/designer/v1/graphs/nodes/property/update",
-                    web::post().to(update_graph_node_property_endpoint),
-                ),
+            App::new().app_data(web::Data::new(designer_state.clone())).route(
+                "/api/designer/v1/graphs/nodes/property/update",
+                web::post().to(update_graph_node_property_endpoint),
+            ),
         )
         .await;
 
@@ -163,7 +161,8 @@ mod tests {
             std::fs::read_to_string(&app_property_json_file_path).unwrap();
 
         let expected_property_json_str = include_str!(
-            "../../../../../test_data/expected_app_property_after_update_property.json"
+            "../../../../../test_data/\
+             expected_app_property_after_update_property.json"
         );
 
         // Parse the contents as JSON for proper comparison.
@@ -410,12 +409,10 @@ mod tests {
         let designer_state = Arc::new(designer_state);
 
         let app = test::init_service(
-            App::new()
-                .app_data(web::Data::new(designer_state.clone()))
-                .route(
-                    "/api/designer/v1/graphs/nodes/property/update",
-                    web::post().to(update_graph_node_property_endpoint),
-                ),
+            App::new().app_data(web::Data::new(designer_state.clone())).route(
+                "/api/designer/v1/graphs/nodes/property/update",
+                web::post().to(update_graph_node_property_endpoint),
+            ),
         )
         .await;
 
@@ -453,7 +450,8 @@ mod tests {
             std::fs::read_to_string(&app_property_json_file_path).unwrap();
 
         let expected_property_json_str = include_str!(
-            "../../../../../test_data/expected_app_property_after_update_property.json"
+            "../../../../../test_data/\
+             expected_app_property_after_update_property.json"
         );
 
         // Parse the contents as JSON for proper comparison.
@@ -553,12 +551,10 @@ mod tests {
         let designer_state = Arc::new(designer_state);
 
         let app = test::init_service(
-            App::new()
-                .app_data(web::Data::new(designer_state.clone()))
-                .route(
-                    "/api/designer/v1/graphs/nodes/property/update",
-                    web::post().to(update_graph_node_property_endpoint),
-                ),
+            App::new().app_data(web::Data::new(designer_state.clone())).route(
+                "/api/designer/v1/graphs/nodes/property/update",
+                web::post().to(update_graph_node_property_endpoint),
+            ),
         )
         .await;
 
@@ -654,7 +650,10 @@ mod tests {
                     temp_dir_path.clone(),
                     "/ten_packages/extension/extension_1"
                 ),
-                include_str!("../../../../../test_data/extension_addon_1_with_complex_property_manifest.json")
+                include_str!(
+                    "../../../../../test_data/\
+                     extension_addon_1_with_complex_property_manifest.json"
+                )
                 .to_string(),
                 "{}".to_string(),
             ),
@@ -687,12 +686,10 @@ mod tests {
         let designer_state = Arc::new(designer_state);
 
         let app = test::init_service(
-            App::new()
-                .app_data(web::Data::new(designer_state.clone()))
-                .route(
-                    "/api/designer/v1/graphs/nodes/property/update",
-                    web::post().to(update_graph_node_property_endpoint),
-                ),
+            App::new().app_data(web::Data::new(designer_state.clone())).route(
+                "/api/designer/v1/graphs/nodes/property/update",
+                web::post().to(update_graph_node_property_endpoint),
+            ),
         )
         .await;
 
@@ -732,7 +729,10 @@ mod tests {
         let updated_property_json_str =
             std::fs::read_to_string(&property_path).unwrap();
 
-        let expected_property_json_str = include_str!("../../../../../test_data/expected_app_property_after_update_complex_property.json"        );
+        let expected_property_json_str = include_str!(
+            "../../../../../test_data/\
+             expected_app_property_after_update_complex_property.json"
+        );
 
         // Parse the contents as JSON for proper comparison.
         let updated_property: serde_json::Value =
@@ -794,7 +794,10 @@ mod tests {
                     temp_dir_path.clone(),
                     "/ten_packages/extension/extension_1"
                 ),
-                include_str!("../../../../../test_data/extension_addon_1_with_complex_property_manifest.json")
+                include_str!(
+                    "../../../../../test_data/\
+                     extension_addon_1_with_complex_property_manifest.json"
+                )
                 .to_string(),
                 "{}".to_string(),
             ),
@@ -827,12 +830,10 @@ mod tests {
         let designer_state = Arc::new(designer_state);
 
         let app = test::init_service(
-            App::new()
-                .app_data(web::Data::new(designer_state.clone()))
-                .route(
-                    "/api/designer/v1/graphs/nodes/property/update",
-                    web::post().to(update_graph_node_property_endpoint),
-                ),
+            App::new().app_data(web::Data::new(designer_state.clone())).route(
+                "/api/designer/v1/graphs/nodes/property/update",
+                web::post().to(update_graph_node_property_endpoint),
+            ),
         )
         .await;
 

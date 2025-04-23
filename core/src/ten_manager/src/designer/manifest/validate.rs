@@ -45,11 +45,8 @@ pub async fn validate_manifest_endpoint(
             },
         };
 
-    let api_response = ApiResponse {
-        status: Status::Ok,
-        data: response_data,
-        meta: None,
-    };
+    let api_response =
+        ApiResponse { status: Status::Ok, data: response_data, meta: None };
 
     Ok(web::Json(api_response))
 }

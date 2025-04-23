@@ -174,10 +174,7 @@ fn navigate_property_path_mut<'a>(
         }
     }
 
-    Err(anyhow::anyhow!(
-        "Failed to navigate property path: {}",
-        path
-    ))
+    Err(anyhow::anyhow!("Failed to navigate property path: {}", path))
 }
 
 // Helper function to find a property at the specified path in a read-only
@@ -417,9 +414,11 @@ fn convert_rules_to_schema_properties(
                                     }
                                     Err(e) => {
                                         return Err(anyhow::anyhow!(
-                                          "Failed to navigate to destination path {}: {}",
-                                          dest_path, e
-                                      ));
+                                            "Failed to navigate to \
+                                             destination path {}: {}",
+                                            dest_path,
+                                            e
+                                        ));
                                     }
                                 }
                             } else {
@@ -453,7 +452,8 @@ fn convert_rules_to_schema_properties(
                     }
                     None => {
                         return Err(anyhow::anyhow!(
-                            "FromOriginal mode at index {} has no original path",
+                            "FromOriginal mode at index {} has no original \
+                             path",
                             index
                         ));
                     }
@@ -578,12 +578,8 @@ pub fn msg_conversion_get_final_target_schema(
         convert_rules_to_schema_properties(
             &msg_conversion.rules.rules,
             ten_name_rule_index,
-            src_msg_schema
-                .as_ref()
-                .and_then(|schema| schema.property.as_ref()),
-            src_msg_schema
-                .as_ref()
-                .and_then(|schema| schema.required.as_ref()),
+            src_msg_schema.as_ref().and_then(|schema| schema.property.as_ref()),
+            src_msg_schema.as_ref().and_then(|schema| schema.required.as_ref()),
             converted_schema_real.property.as_mut().unwrap(),
             &mut converted_schema_real.required,
         )?;

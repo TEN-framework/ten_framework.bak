@@ -33,11 +33,8 @@ pub async fn get_env_endpoint(
         arch: current_env.arch.to_string(),
     };
 
-    let response = ApiResponse {
-        status: Status::Ok,
-        data: env_info,
-        meta: None,
-    };
+    let response =
+        ApiResponse { status: Status::Ok, data: env_info, meta: None };
 
     Ok(HttpResponse::Ok().json(response))
 }

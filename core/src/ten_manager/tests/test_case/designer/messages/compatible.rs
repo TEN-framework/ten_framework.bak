@@ -82,11 +82,7 @@ async fn test_get_compatible_messages_success() {
     let graph_id = {
         let graphs_cache = &designer_state.graphs_cache.read().await;
         let graph_id = graphs_cache.iter().find_map(|(uuid, info)| {
-            if info
-                .name
-                .as_ref()
-                .map(|name| name == "default")
-                .unwrap_or(false)
+            if info.name.as_ref().map(|name| name == "default").unwrap_or(false)
             {
                 Some(*uuid)
             } else {

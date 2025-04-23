@@ -116,10 +116,7 @@ fn validate_msg_conversion_schema(
     let (dest_msg_name, ten_name_rule_index) =
         msg_conversion_get_dest_msg_name(
             msg_conversion_validate_info.msg_name,
-            msg_conversion_validate_info
-                .msg_conversion
-                .as_ref()
-                .unwrap(),
+            msg_conversion_validate_info.msg_conversion.as_ref().unwrap(),
         )?;
 
     let (converted_schema, converted_result_schema) =
@@ -134,10 +131,7 @@ fn validate_msg_conversion_schema(
             msg_conversion_validate_info.msg_name,
             &dest_msg_name,
             ten_name_rule_index,
-            msg_conversion_validate_info
-                .msg_conversion
-                .as_ref()
-                .unwrap(),
+            msg_conversion_validate_info.msg_conversion.as_ref().unwrap(),
         )?;
 
     if let Some(converted_schema) = converted_schema {
@@ -263,9 +257,12 @@ fn find_pkg_infos<'a>(
 
             if found_extension_pkg_info.is_none() {
                 return Err(anyhow::anyhow!(
-                              "{} extension '{}' not found in the installed packages for app '{:?}'",
-                              entity_type, extension_name, app_uri
-                          ));
+                    "{} extension '{}' not found in the installed packages \
+                     for app '{:?}'",
+                    entity_type,
+                    extension_name,
+                    app_uri
+                ));
             }
 
             return Ok(found_extension_pkg_info);
@@ -273,9 +270,12 @@ fn find_pkg_infos<'a>(
 
         // If we reach here, no package was found.
         Err(anyhow::anyhow!(
-                "{} extension '{}' not found in the installed packages for app '{:?}'",
-                entity_type, extension_name, app_uri
-            ))
+            "{} extension '{}' not found in the installed packages for app \
+             '{:?}'",
+            entity_type,
+            extension_name,
+            app_uri
+        ))
     };
 
     // Find both source and destination package info.
@@ -292,11 +292,8 @@ fn get_src_and_dest_c_msg_schema<'a>(
     pkgs_cache: &'a HashMap<String, PkgsInfoInApp>,
     graph: &mut Graph,
     msg_conversion_validate_info: &MsgConversionValidateInfo,
-) -> Result<(
-    Option<&'a TenMsgSchema>,
-    Option<&'a TenMsgSchema>,
-    Option<String>,
-)> {
+) -> Result<(Option<&'a TenMsgSchema>, Option<&'a TenMsgSchema>, Option<String>)>
+{
     let src_extension_addon = graph.get_addon_name_of_extension(
         msg_conversion_validate_info.src_app,
         msg_conversion_validate_info.src_extension,
@@ -338,7 +335,12 @@ fn get_src_and_dest_c_msg_schema<'a>(
                     .and_then(|store| {
                         store.cmd_in.get(msg_conversion_validate_info.msg_name)
                     });
-                (src, dest, "Command schema incompatibility between source and destination")
+                (
+                    src,
+                    dest,
+                    "Command schema incompatibility between source and \
+                     destination",
+                )
             }
             MsgType::Data => {
                 let src = src_extension_pkg_info
@@ -355,7 +357,12 @@ fn get_src_and_dest_c_msg_schema<'a>(
                     .and_then(|store| {
                         store.data_in.get(msg_conversion_validate_info.msg_name)
                     });
-                (src, dest, "Data schema incompatibility between source and destination")
+                (
+                    src,
+                    dest,
+                    "Data schema incompatibility between source and \
+                     destination",
+                )
             }
             MsgType::AudioFrame => {
                 let src = src_extension_pkg_info
@@ -374,7 +381,12 @@ fn get_src_and_dest_c_msg_schema<'a>(
                             .audio_frame_in
                             .get(msg_conversion_validate_info.msg_name)
                     });
-                (src, dest, "Audio frame schema incompatibility between source and destination")
+                (
+                    src,
+                    dest,
+                    "Audio frame schema incompatibility between source and \
+                     destination",
+                )
             }
             MsgType::VideoFrame => {
                 let src = src_extension_pkg_info
@@ -393,7 +405,12 @@ fn get_src_and_dest_c_msg_schema<'a>(
                             .video_frame_in
                             .get(msg_conversion_validate_info.msg_name)
                     });
-                (src, dest, "Video frame schema incompatibility between source and destination")
+                (
+                    src,
+                    dest,
+                    "Video frame schema incompatibility between source and \
+                     destination",
+                )
             }
         };
 

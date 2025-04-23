@@ -67,9 +67,8 @@ mod tests {
             serde_json::from_str(body_str).unwrap();
 
         // Create the expected Version struct
-        let expected_version = GetVersionResponseData {
-            version: VERSION.to_string(),
-        };
+        let expected_version =
+            GetVersionResponseData { version: VERSION.to_string() };
 
         // Compare the actual Version struct with the expected one
         assert_eq!(version.data, expected_version);

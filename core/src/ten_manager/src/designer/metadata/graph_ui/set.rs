@@ -43,11 +43,8 @@ pub async fn set_graph_ui_endpoint(
         .insert(graph_id, graph_geometry);
 
     let response_data = SetGraphUiResponseData { success: true };
-    let response = ApiResponse {
-        status: Status::Ok,
-        data: response_data,
-        meta: None,
-    };
+    let response =
+        ApiResponse { status: Status::Ok, data: response_data, meta: None };
 
     Ok(HttpResponse::Ok().json(response))
 }
