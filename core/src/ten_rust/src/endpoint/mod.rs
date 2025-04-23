@@ -22,8 +22,7 @@ use prometheus::{
 };
 
 use crate::constants::{
-    TELEMETRY_SERVER_START_RETRY_INTERVAL,
-    TELEMETRY_SERVER_START_RETRY_MAX_ATTEMPTS,
+    ENDPOINT_SERVER_BIND_MAX_RETRIES, ENDPOINT_SERVER_BIND_RETRY_INTERVAL_SECS,
 };
 
 pub struct TelemetrySystem {
@@ -45,7 +44,7 @@ pub enum MetricHandle {
     HistogramVec(HistogramVec),
 }
 
-/// Configuration function for telemetry server routes.
+/// Configure API endpoints.
 fn configure_routes(cfg: &mut web::ServiceConfig, registry: Registry) {
     let registry_clone = registry;
 
@@ -54,6 +53,72 @@ fn configure_routes(cfg: &mut web::ServiceConfig, registry: Registry) {
 
     // Configure API endpoints.
     api_handler::configure_api_route(cfg);
+}
+
+/// Creates an HTTP server with retry mechanism if binding fails.
+///
+/// This function attempts to bind an HTTP server to the specified endpoint.
+/// If binding fails, it will retry up to a configured maximum number of
+/// attempts with a delay between each attempt.
+fn create_endpoint_server_with_retry(
+    endpoint_str: &str,
+    registry: Registry,
+) -> Option<actix_web::dev::Server> {
+    let mut attempts = 0;
+    let max_attempts = ENDPOINT_SERVER_BIND_MAX_RETRIES;
+    let wait_duration = std::time::Duration::from_secs(
+        ENDPOINT_SERVER_BIND_RETRY_INTERVAL_SECS,
+    );
+
+    // Try to create and bind the HTTP server, with retries if it fails.
+    let server_builder = loop {
+        let registry_clone = registry.clone();
+
+        // Create a new HTTP server with the configured routes.
+        let result = HttpServer::new(move || {
+            App::new()
+                .configure(|cfg| configure_routes(cfg, registry_clone.clone()))
+        })
+        // Make actix not linger on the socket.
+        .shutdown_timeout(0)
+        .bind(&endpoint_str);
+
+        match result {
+            Ok(server) => break server,
+            Err(e) => {
+                attempts += 1;
+
+                // If we've reached the maximum number of attempts, log the
+                // error and return None.
+                if attempts >= max_attempts {
+                    eprintln!(
+                        "Error binding to address: {} after {} attempts: {:?}",
+                        endpoint_str, attempts, e
+                    );
+                    return None;
+                }
+
+                // Otherwise, log the error and retry after a delay.
+                eprintln!(
+                    "Failed to bind to address: {}. Attempt {} of {}. \
+                     Retrying in {} second{}...",
+                    endpoint_str,
+                    attempts,
+                    max_attempts,
+                    ENDPOINT_SERVER_BIND_RETRY_INTERVAL_SECS,
+                    if ENDPOINT_SERVER_BIND_RETRY_INTERVAL_SECS == 1 {
+                        ""
+                    } else {
+                        "s"
+                    }
+                );
+                std::thread::sleep(wait_duration);
+            }
+        }
+    };
+
+    // Start the server and return it.
+    Some(server_builder.run())
 }
 
 /// Initialize the endpoint system.
@@ -73,49 +138,14 @@ pub extern "C" fn ten_endpoint_system_create(
     let registry = Registry::new();
 
     // Start the actix-web server to provide metrics data at the specified path.
-
-    let mut attempts = 0;
-    let max_attempts = TELEMETRY_SERVER_START_RETRY_MAX_ATTEMPTS;
-    let wait_duration =
-        std::time::Duration::from_secs(TELEMETRY_SERVER_START_RETRY_INTERVAL);
-
-    let server_builder = loop {
-        let registry_clone = registry.clone();
-
-        let result = HttpServer::new(move || {
-            App::new()
-                .configure(|cfg| configure_routes(cfg, registry_clone.clone()))
-        })
-        // Make actix not linger on the socket.
-        .shutdown_timeout(0)
-        .bind(&endpoint_str);
-
-        match result {
-            Ok(server) => break server,
-            Err(e) => {
-                attempts += 1;
-                if attempts >= max_attempts {
-                    eprintln!(
-                        "Error binding to address: {} after {} attempts: {:?}",
-                        endpoint_str, attempts, e
-                    );
-                    return ptr::null_mut();
-                }
-
-                eprintln!(
-                    "Failed to bind to address: {}. Attempt {} of {}. \
-                     Retrying in {} second...",
-                    endpoint_str,
-                    attempts,
-                    max_attempts,
-                    TELEMETRY_SERVER_START_RETRY_INTERVAL
-                );
-                std::thread::sleep(wait_duration);
-            }
-        }
+    let server = match create_endpoint_server_with_retry(
+        &endpoint_str,
+        registry.clone(),
+    ) {
+        Some(server) => server,
+        None => return ptr::null_mut(),
     };
 
-    let server = server_builder.run();
     let server_handle = server.handle();
 
     // Create an `oneshot` channel to notify the actix system to shut down.

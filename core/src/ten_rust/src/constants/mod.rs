@@ -7,9 +7,6 @@
 pub mod endpoint;
 pub use endpoint::*;
 
-pub const TELEMETRY_SERVER_START_RETRY_MAX_ATTEMPTS: u32 = 3;
-pub const TELEMETRY_SERVER_START_RETRY_INTERVAL: u64 = 1; // seconds
-
 pub const ERR_MSG_GRAPH_LOCALHOST_FORBIDDEN_IN_SINGLE_APP_MODE: &str =
     "'localhost' is not allowed in graph definition, and the graph seems to \
      be a single-app graph, just remove the 'app' field";
