@@ -149,7 +149,7 @@ ten_app_t *ten_app_create(ten_app_on_configure_func_t on_configure,
   self->property_info = NULL;
 
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
-  ten_app_init_service_hub(self);
+  ten_service_hub_init(&self->service_hub);
 #endif
 
   TEN_ADDON_STORE_INIT(self->extension_store);

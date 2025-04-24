@@ -24,11 +24,11 @@ typedef struct ten_service_hub_t {
   MetricHandle *metric_extension_thread_msg_queue_stay_time_us;
 } ten_service_hub_t;
 
-TEN_RUNTIME_PRIVATE_API void ten_app_init_service_hub(ten_app_t *self);
+TEN_RUNTIME_PRIVATE_API void ten_service_hub_init(ten_service_hub_t *self);
 
 TEN_RUNTIME_PRIVATE_API void ten_app_deinit_service_hub(ten_app_t *self);
 
 #endif
 
-TEN_RUNTIME_PRIVATE_API bool ten_app_init_service_hub_config(
-    ten_app_t *self, ten_value_t *value);
+TEN_RUNTIME_PRIVATE_API bool ten_app_init_service_hub(ten_app_t *self,
+                                                      ten_value_t *value);

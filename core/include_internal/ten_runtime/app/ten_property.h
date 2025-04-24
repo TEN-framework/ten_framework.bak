@@ -16,27 +16,27 @@ static const ten_app_ten_namespace_prop_info_t
     ten_app_ten_namespace_prop_info_list[] = {
         {
             .name = TEN_STR_ONE_EVENT_LOOP_PER_ENGINE,
-            .init_from_value = ten_app_init_one_event_loop_per_engine_config,
+            .init_from_value = ten_app_init_one_event_loop_per_engine,
         },
         {
             .name = TEN_STR_LONG_RUNNING_MODE,
-            .init_from_value = ten_app_init_long_running_mode_config,
+            .init_from_value = ten_app_init_long_running_mode,
         },
         {
             .name = TEN_STR_URI,
-            .init_from_value = ten_app_init_uri_config,
+            .init_from_value = ten_app_init_uri,
         },
         {
             .name = TEN_STR_TELEMETRY,
-            .init_from_value = ten_app_init_service_hub_config,
+            .init_from_value = ten_app_init_service_hub,
         },
         {
             .name = TEN_STR_LOG,
-            .init_from_value = ten_app_init_log_config,
+            .init_from_value = ten_app_init_log,
         },
         {
             .name = TEN_STR_ADDON,
-            .init_from_value = ten_app_init_addon_config,
+            .init_from_value = ten_app_init_addon,
         },
 };
 

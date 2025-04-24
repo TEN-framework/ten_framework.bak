@@ -13,23 +13,16 @@
 #include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_rust/ten_rust.h"
 
-static void ten_service_hub_init(ten_service_hub_t *self) {
+void ten_service_hub_init(ten_service_hub_t *self) {
   TEN_ASSERT(self, "Should not happen.");
 
   self->service_hub = NULL;
   self->metric_extension_thread_msg_queue_stay_time_us = NULL;
 }
 
-void ten_app_init_service_hub(ten_app_t *self) {
-  TEN_ASSERT(self, "Should not happen.");
-  TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
-
-  ten_service_hub_init(&self->service_hub);
-}
-
 #endif
 
-bool ten_app_init_service_hub_config(ten_app_t *self, ten_value_t *value) {
+bool ten_app_init_service_hub(ten_app_t *self, ten_value_t *value) {
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
