@@ -2,6 +2,9 @@
   "type": "app",
   "name": "{{package_name}}",
   "version": "0.10.0",
+  "tags": [
+    "nodejs"
+  ],
   "dependencies": [
     {
       "type": "system",

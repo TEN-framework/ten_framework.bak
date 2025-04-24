@@ -2,6 +2,9 @@
   "type": "extension",
   "name": "ollama_python",
   "version": "0.10.0",
+  "tags": [
+    "python"
+  ],
   "dependencies": [
     {
       "type": "system",

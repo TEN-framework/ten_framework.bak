@@ -2,6 +2,9 @@
   "type": "app",
   "name": "default_app_go",
   "version": "0.10.0",
+  "tags": [
+    "go"
+  ],
   "dependencies": [
     {
       "type": "system",

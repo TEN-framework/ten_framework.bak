@@ -2,6 +2,9 @@
   "type": "extension",
   "name": "{{package_name}}",
   "version": "0.10.0",
+  "tags": [
+    "go"
+  ],
   "dependencies": [
     {
       "type": "system",

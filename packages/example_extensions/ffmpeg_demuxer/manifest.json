@@ -2,6 +2,9 @@
   "type": "extension",
   "name": "ffmpeg_demuxer",
   "version": "0.10.0",
+  "tags": [
+    "cpp"
+  ],
   "dependencies": [
     {
       "type": "system",
