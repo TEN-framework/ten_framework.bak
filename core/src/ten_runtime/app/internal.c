@@ -81,8 +81,10 @@ void ten_app_start(ten_app_t *self) {
 
   TEN_LOGD("TEN app runloop ends.");
 
+#if defined(TEN_ENABLE_TEN_RUST_APIS)
   // Clean up telemetry system after the runloop exits.
   ten_app_deinit_service_hub(self);
+#endif
 }
 
 void ten_app_add_orphan_connection(ten_app_t *self,
