@@ -9,7 +9,7 @@
 #include "ten_runtime/ten_config.h"
 
 #include "include_internal/ten_runtime/app/metadata.h"
-#include "include_internal/ten_runtime/app/telemetry.h"
+#include "include_internal/ten_runtime/app/service_hub/service_hub.h"
 #include "include_internal/ten_runtime/common/constant_str.h"
 
 static const ten_app_ten_namespace_prop_info_t
@@ -28,7 +28,7 @@ static const ten_app_ten_namespace_prop_info_t
         },
         {
             .name = TEN_STR_TELEMETRY,
-            .init_from_value = ten_app_init_telemetry_system_config,
+            .init_from_value = ten_app_init_service_hub_config,
         },
         {
             .name = TEN_STR_LOG,
