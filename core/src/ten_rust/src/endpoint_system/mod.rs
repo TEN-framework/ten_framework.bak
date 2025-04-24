@@ -22,14 +22,16 @@ use crate::constants::{
     ENDPOINT_SERVER_BIND_MAX_RETRIES, ENDPOINT_SERVER_BIND_RETRY_INTERVAL_SECS,
 };
 
-pub struct TelemetrySystem {
+/// The system for the endpoint server.
+pub struct EndpointSystem {
+    /// The Prometheus registry.
     registry: Registry,
 
-    actix_thread: Option<thread::JoinHandle<()>>,
+    /// The server thread handle.
+    server_thread_handle: Option<thread::JoinHandle<()>>,
 
-    /// Used to send a shutdown signal to the actix system where the server is
-    /// located.
-    actix_shutdown_tx: Option<oneshot::Sender<()>>,
+    /// Used to send a shutdown signal to the server thread.
+    server_thread_shutdown_tx: Option<oneshot::Sender<()>>,
 }
 
 /// Configure API endpoints.
@@ -63,13 +65,17 @@ fn create_endpoint_server_with_retry(
         let registry_clone = registry.clone();
 
         // Create a new HTTP server with the configured routes.
-        let result = HttpServer::new(move || {
+        let server = HttpServer::new(move || {
             App::new()
                 .configure(|cfg| configure_routes(cfg, registry_clone.clone()))
         })
         // Make actix not linger on the socket.
         .shutdown_timeout(0)
-        .bind(&endpoint_str);
+        // Set a larger backlog for better performance during high load.
+        .backlog(1024);
+
+        // Try to bind to the specified endpoint.
+        let result = server.bind(&endpoint_str);
 
         match result {
             Ok(server) => break server,
@@ -83,6 +89,13 @@ fn create_endpoint_server_with_retry(
                         "Error binding to address: {} after {} attempts: {:?}",
                         endpoint_str, attempts, e
                     );
+
+                    // Provide a helpful message for common issues.
+                    eprintln!(
+                        "Check if another process is using this port or if \
+                         you have permission to bind to this address."
+                    );
+
                     return None;
                 }
 
@@ -194,7 +207,7 @@ fn create_server_thread(
 #[no_mangle]
 pub unsafe extern "C" fn ten_endpoint_system_create(
     endpoint: *const c_char,
-) -> *mut TelemetrySystem {
+) -> *mut EndpointSystem {
     // Safely convert C string to Rust string.
     let endpoint_str = match CStr::from_ptr(endpoint).to_str() {
         Ok(s) if !s.trim().is_empty() => s.to_string(),
@@ -221,10 +234,10 @@ pub unsafe extern "C" fn ten_endpoint_system_create(
     let (server_thread_handle, shutdown_tx) = create_server_thread(server);
 
     // Create and return the TelemetrySystem.
-    let system = TelemetrySystem {
+    let system = EndpointSystem {
         registry,
-        actix_thread: Some(server_thread_handle),
-        actix_shutdown_tx: Some(shutdown_tx),
+        server_thread_handle: Some(server_thread_handle),
+        server_thread_shutdown_tx: Some(shutdown_tx),
     };
 
     // Convert to raw pointer for C API.
@@ -232,6 +245,11 @@ pub unsafe extern "C" fn ten_endpoint_system_create(
 }
 
 /// Shut down the endpoint system, stop the server, and clean up all resources.
+///
+/// This function implements a graceful shutdown with proper resource cleanup:
+/// 1. Sends a shutdown signal to the server
+/// 2. Waits for the server thread to complete with a timeout
+/// 3. Ensures all resources are properly released
 ///
 /// # Safety
 ///
@@ -241,7 +259,7 @@ pub unsafe extern "C" fn ten_endpoint_system_create(
 /// will lead to undefined behavior.
 #[no_mangle]
 pub unsafe extern "C" fn ten_endpoint_system_shutdown(
-    system_ptr: *mut TelemetrySystem,
+    system_ptr: *mut EndpointSystem,
 ) {
     debug_assert!(!system_ptr.is_null(), "System pointer is null");
     // Early return for null pointers.
@@ -256,29 +274,79 @@ pub unsafe extern "C" fn ten_endpoint_system_shutdown(
     let system = Box::from_raw(system_ptr);
 
     // Notify the actix system to shut down through the `oneshot` channel.
-    if let Some(shutdown_tx) = system.actix_shutdown_tx {
+    if let Some(shutdown_tx) = system.server_thread_shutdown_tx {
         eprintln!("Shutting down endpoint server...");
         if let Err(e) = shutdown_tx.send(()) {
             eprintln!("Failed to send shutdown signal: {:?}", e);
-
-            panic!("Failed to send shutdown signal");
+            // Don't panic, just continue with cleanup.
+            eprintln!(
+                "Continuing with cleanup despite shutdown signal failure"
+            );
         }
     } else {
         eprintln!("No shutdown channel available for the endpoint server");
     }
 
-    // Wait for the server thread to complete.
-    if let Some(server_thread_handle) = system.actix_thread {
+    // Wait for the server thread to complete with a timeout.
+    if let Some(server_thread_handle) = system.server_thread_handle {
         eprintln!("Waiting for endpoint server to shut down...");
-        match server_thread_handle.join() {
-            Ok(_) => eprintln!("Endpoint server thread joined successfully"),
-            Err(e) => {
-                eprintln!("Error joining endpoint server thread: {:?}", e)
+
+        // Define a timeout for the join operation.
+        const SHUTDOWN_TIMEOUT_SECS: u64 = 10;
+
+        // We use std::thread::scope to ensure the spawned thread is joined
+        // This prevents thread leaks even if an error occurs.
+        std::thread::scope(|s| {
+            // Create a timeout channel for coordination.
+            let (tx, rx) = std::sync::mpsc::channel();
+
+            // Spawn a scoped thread to join the server thread.
+            s.spawn(move || {
+                let join_result = server_thread_handle.join();
+
+                // Send result, ignore errors if receiver dropped.
+                let _ = tx.send(join_result);
+            });
+
+            // Wait with timeout.
+            match rx.recv_timeout(std::time::Duration::from_secs(
+                SHUTDOWN_TIMEOUT_SECS,
+            )) {
+                Ok(join_result) => match join_result {
+                    Ok(_) => {
+                        eprintln!("Endpoint server thread joined successfully")
+                    }
+                    Err(e) => eprintln!(
+                        "Error joining endpoint server thread: {:?}",
+                        e
+                    ),
+                },
+                Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {
+                    eprintln!(
+                        "WARNING: Endpoint server thread did not shut down \
+                         within timeout ({}s)",
+                        SHUTDOWN_TIMEOUT_SECS
+                    );
+                    eprintln!(
+                        "The thread may still be running, potentially leaking \
+                         resources"
+                    );
+                }
+                Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => {
+                    eprintln!(
+                        "ERROR: Channel disconnected while waiting for server \
+                         thread to join"
+                    );
+                }
             }
-        }
+
+            // The scoped thread is automatically joined when we exit this
+            // scope.
+        });
     } else {
         eprintln!("No thread handle available for the endpoint server");
     }
 
     // The system will be automatically dropped here, cleaning up all resources.
+    eprintln!("Endpoint server resources cleaned up");
 }

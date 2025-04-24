@@ -86,7 +86,7 @@ if (ten_enable_ten_rust) {
     output_file = "include_internal/ten_rust/ten_rust.h"
     binding_files = [
       "src/bindings.rs",
-      "src/endpoint/mod.rs",
+      "src/endpoint_system/mod.rs",
     ]
 
     deps = [ ":ten_rust_static_lib" ]
