@@ -15,6 +15,9 @@
 
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
 
+#define TEN_SERVICE_HUB_DEFAULT_HOST "0.0.0.0"
+#define TEN_SERVICE_HUB_DEFAULT_PORT 49484
+
 typedef struct ServiceHub ServiceHub;
 typedef struct MetricHandle MetricHandle;
 

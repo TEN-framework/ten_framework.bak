@@ -27,7 +27,7 @@ static const ten_app_ten_namespace_prop_info_t
             .init_from_value = ten_app_init_uri,
         },
         {
-            .name = TEN_STR_TELEMETRY,
+            .name = TEN_STR_SERVICES,
             .init_from_value = ten_app_init_service_hub,
         },
         {
