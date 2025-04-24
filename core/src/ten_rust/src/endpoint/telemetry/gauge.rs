@@ -10,10 +10,10 @@ use anyhow::Result;
 
 use crate::endpoint::telemetry::convert_label_values;
 
-use super::{MetricHandle, TelemetrySystem};
+use super::{EndpointSystem, MetricHandle};
 
 pub fn create_metric_gauge(
-    system: &mut TelemetrySystem,
+    system: &mut EndpointSystem,
     name_str: &str,
     help_str: &str,
 ) -> Result<MetricHandle> {
@@ -31,7 +31,7 @@ pub fn create_metric_gauge(
 }
 
 pub fn create_metric_gauge_with_labels(
-    system: &mut TelemetrySystem,
+    system: &mut EndpointSystem,
     name_str: &str,
     help_str: &str,
     label_names: &[&str],
