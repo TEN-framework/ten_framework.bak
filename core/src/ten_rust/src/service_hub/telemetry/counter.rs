@@ -9,7 +9,7 @@ use std::os::raw::c_char;
 
 use anyhow::Result;
 
-use super::{EndpointSystem, MetricHandle};
+use super::{MetricHandle, ServiceHub};
 
 unsafe fn convert_label_values(
     values_ptr: *const *const c_char,
@@ -38,7 +38,7 @@ unsafe fn convert_label_values(
 }
 
 pub fn create_metric_counter(
-    system: &mut EndpointSystem,
+    system: &mut ServiceHub,
     name_str: &str,
     help_str: &str,
 ) -> Result<MetricHandle> {
@@ -57,7 +57,7 @@ pub fn create_metric_counter(
 }
 
 pub fn create_metric_counter_with_labels(
-    system: &mut EndpointSystem,
+    system: &mut ServiceHub,
     name_str: &str,
     help_str: &str,
     label_names: &[&str],

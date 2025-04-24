@@ -31,7 +31,7 @@ typedef struct ten_protocol_t ten_protocol_t;
 typedef struct ten_path_table_t ten_path_table_t;
 // The symbols for these two below are written in Rust code, so the naming
 // convention is a bit different.
-typedef struct TelemetrySystem TelemetrySystem;
+typedef struct ServiceHub ServiceHub;
 typedef struct MetricHandle MetricHandle;
 
 typedef enum TEN_APP_STATE {
@@ -126,7 +126,7 @@ typedef struct ten_app_t {
   ten_path_table_t *path_table;
 
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
-  TelemetrySystem *telemetry_system;
+  ServiceHub *service_hub;
   MetricHandle *metric_extension_thread_msg_queue_stay_time_us;
 #endif
 

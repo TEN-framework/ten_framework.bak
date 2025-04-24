@@ -23,7 +23,7 @@ use prometheus::{Encoder, Registry, TextEncoder};
 
 use crate::constants::METRICS;
 
-use super::EndpointSystem;
+use super::ServiceHub;
 
 pub enum MetricHandle {
     Counter(prometheus::Counter),
@@ -116,7 +116,7 @@ unsafe fn convert_label_values(
 #[no_mangle]
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub unsafe extern "C" fn ten_metric_create(
-    system_ptr: *mut EndpointSystem,
+    system_ptr: *mut ServiceHub,
     metric_type: u32, // 0=Counter, 1=Gauge, 2=Histogram
     name: *const c_char,
     help: *const c_char,

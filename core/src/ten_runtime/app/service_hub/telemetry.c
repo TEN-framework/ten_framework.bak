@@ -22,11 +22,11 @@ static void ten_app_create_metric(ten_app_t *self) {
   TEN_ASSERT(!self->metric_extension_thread_msg_queue_stay_time_us,
              "Should not happen.");
 
-  if (self->telemetry_system) {
+  if (self->service_hub) {
     const char *label_names[] = {"app", "graph", "extension_group"};
 
     self->metric_extension_thread_msg_queue_stay_time_us = ten_metric_create(
-        self->telemetry_system, 1, "extension_thread_msg_queue_stay_time",
+        self->service_hub, 1, "extension_thread_msg_queue_stay_time",
         "The duration (in micro-seconds) that a message instance stays in the "
         "message queue of extension thread before being processed.",
         label_names, 3);
@@ -41,7 +41,7 @@ static void ten_app_destroy_metric(ten_app_t *self) {
              "Invalid use of extension_thread %p.", self);
 
   if (self->metric_extension_thread_msg_queue_stay_time_us) {
-    TEN_ASSERT(self->telemetry_system, "Should not happen.");
+    TEN_ASSERT(self->service_hub, "Should not happen.");
 
     ten_metric_destroy(self->metric_extension_thread_msg_queue_stay_time_us);
     self->metric_extension_thread_msg_queue_stay_time_us = NULL;
@@ -84,8 +84,8 @@ bool ten_app_init_telemetry_system_config(ten_app_t *self, ten_value_t *value) {
 
   // TODO(Wei): The logic for starting the telemetry system should be moved out
   // of the config process.
-  self->telemetry_system = ten_endpoint_system_create(endpoint);
-  if (!self->telemetry_system) {
+  self->service_hub = ten_service_hub_create(endpoint);
+  if (!self->service_hub) {
     TEN_LOGE("Failed to create telemetry system with default endpoint.");
 
     // NOLINTNEXTLINE(concurrency-mt-unsafe)
@@ -102,11 +102,11 @@ bool ten_app_init_telemetry_system_config(ten_app_t *self, ten_value_t *value) {
 
 void ten_app_deinit_telemetry_system(ten_app_t *self) {
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
-  if (self->telemetry_system) {
+  if (self->service_hub) {
     TEN_LOGD("[%s] Destroy telemetry system.", ten_app_get_uri(self));
 
     ten_app_destroy_metric(self);
-    ten_endpoint_system_shutdown(self->telemetry_system);
+    ten_service_hub_shutdown(self->service_hub);
   }
 #endif
 }

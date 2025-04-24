@@ -4,8 +4,8 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-pub mod endpoint;
-pub use endpoint::*;
+pub mod service_hub;
+pub use service_hub::*;
 
 pub const ERR_MSG_GRAPH_LOCALHOST_FORBIDDEN_IN_SINGLE_APP_MODE: &str =
     "'localhost' is not allowed in graph definition, and the graph seems to \

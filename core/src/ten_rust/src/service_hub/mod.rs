@@ -19,11 +19,11 @@ use futures::FutureExt;
 use prometheus::Registry;
 
 use crate::constants::{
-    ENDPOINT_SERVER_BIND_MAX_RETRIES, ENDPOINT_SERVER_BIND_RETRY_INTERVAL_SECS,
+    SERVICE_HUB_SERVER_BIND_MAX_RETRIES,
+    SERVICE_HUB_SERVER_BIND_RETRY_INTERVAL_SECS,
 };
 
-/// The system for the endpoint server.
-pub struct EndpointSystem {
+pub struct ServiceHub {
     /// The Prometheus registry.
     registry: Registry,
 
@@ -50,14 +50,14 @@ fn configure_routes(cfg: &mut web::ServiceConfig, registry: Registry) {
 /// This function attempts to bind an HTTP server to the specified endpoint.
 /// If binding fails, it will retry up to a configured maximum number of
 /// attempts with a delay between each attempt.
-fn create_endpoint_server_with_retry(
+fn create_service_hub_server_with_retry(
     endpoint_str: &str,
     registry: Registry,
 ) -> Option<actix_web::dev::Server> {
     let mut attempts = 0;
-    let max_attempts = ENDPOINT_SERVER_BIND_MAX_RETRIES;
+    let max_attempts = SERVICE_HUB_SERVER_BIND_MAX_RETRIES;
     let wait_duration = std::time::Duration::from_secs(
-        ENDPOINT_SERVER_BIND_RETRY_INTERVAL_SECS,
+        SERVICE_HUB_SERVER_BIND_RETRY_INTERVAL_SECS,
     );
 
     // Try to create and bind the HTTP server, with retries if it fails.
@@ -106,8 +106,8 @@ fn create_endpoint_server_with_retry(
                     endpoint_str,
                     attempts,
                     max_attempts,
-                    ENDPOINT_SERVER_BIND_RETRY_INTERVAL_SECS,
-                    if ENDPOINT_SERVER_BIND_RETRY_INTERVAL_SECS == 1 {
+                    SERVICE_HUB_SERVER_BIND_RETRY_INTERVAL_SECS,
+                    if SERVICE_HUB_SERVER_BIND_RETRY_INTERVAL_SECS == 1 {
                         ""
                     } else {
                         "s"
@@ -127,7 +127,7 @@ fn create_endpoint_server_with_retry(
 ///
 /// This function encapsulates the logic for running an actix server in a
 /// separate thread, handling both normal operation and shutdown requests.
-fn create_server_thread(
+fn create_service_hub_server_thread(
     server: actix_web::dev::Server,
 ) -> (thread::JoinHandle<()>, oneshot::Sender<()>) {
     // Get a handle to the server to control it later.
@@ -203,11 +203,11 @@ fn create_server_thread(
 ///
 /// This function takes a raw C string pointer. The pointer must be valid and
 /// point to a properly null-terminated string. The returned pointer must be
-/// freed with `ten_endpoint_system_shutdown` to avoid memory leaks.
+/// freed with `ten_service_hub_shutdown` to avoid memory leaks.
 #[no_mangle]
-pub unsafe extern "C" fn ten_endpoint_system_create(
+pub unsafe extern "C" fn ten_service_hub_create(
     endpoint: *const c_char,
-) -> *mut EndpointSystem {
+) -> *mut ServiceHub {
     // Safely convert C string to Rust string.
     let endpoint_str = match CStr::from_ptr(endpoint).to_str() {
         Ok(s) if !s.trim().is_empty() => s.to_string(),
@@ -222,7 +222,7 @@ pub unsafe extern "C" fn ten_endpoint_system_create(
     let registry = Registry::new();
 
     // Start the actix-web server to provide metrics data at the specified path.
-    let server = match create_endpoint_server_with_retry(
+    let server = match create_service_hub_server_with_retry(
         &endpoint_str,
         registry.clone(),
     ) {
@@ -231,17 +231,18 @@ pub unsafe extern "C" fn ten_endpoint_system_create(
     };
 
     // Create the server thread and get the shutdown channel.
-    let (server_thread_handle, shutdown_tx) = create_server_thread(server);
+    let (server_thread_handle, shutdown_tx) =
+        create_service_hub_server_thread(server);
 
-    // Create and return the TelemetrySystem.
-    let system = EndpointSystem {
+    // Create and return the ServiceHub.
+    let service_hub = ServiceHub {
         registry,
         server_thread_handle: Some(server_thread_handle),
         server_thread_shutdown_tx: Some(shutdown_tx),
     };
 
     // Convert to raw pointer for C API.
-    Box::into_raw(Box::new(system))
+    Box::into_raw(Box::new(service_hub))
 }
 
 /// Shut down the endpoint system, stop the server, and clean up all resources.
@@ -254,28 +255,28 @@ pub unsafe extern "C" fn ten_endpoint_system_create(
 /// # Safety
 ///
 /// This function assumes that `system_ptr` is either null or a valid pointer to
-/// a `TelemetrySystem` that was previously created with
-/// `ten_endpoint_system_create`. Calling this function with an invalid pointer
+/// a `ServiceHub` that was previously created with
+/// `ten_service_hub_create`. Calling this function with an invalid pointer
 /// will lead to undefined behavior.
 #[no_mangle]
-pub unsafe extern "C" fn ten_endpoint_system_shutdown(
-    system_ptr: *mut EndpointSystem,
+pub unsafe extern "C" fn ten_service_hub_shutdown(
+    service_hub_ptr: *mut ServiceHub,
 ) {
-    debug_assert!(!system_ptr.is_null(), "System pointer is null");
+    debug_assert!(!service_hub_ptr.is_null(), "System pointer is null");
     // Early return for null pointers.
-    if system_ptr.is_null() {
-        eprintln!("Warning: Attempt to shut down null TelemetrySystem pointer");
+    if service_hub_ptr.is_null() {
+        eprintln!("Warning: Attempt to shut down null ServiceHub pointer");
         return;
     }
 
     // Retrieve ownership using `Box::from_raw`. This transfers ownership to
     // Rust, and the Box will be automatically dropped when it goes out of
     // scope.
-    let system = Box::from_raw(system_ptr);
+    let service_hub = Box::from_raw(service_hub_ptr);
 
     // Notify the actix system to shut down through the `oneshot` channel.
-    if let Some(shutdown_tx) = system.server_thread_shutdown_tx {
-        eprintln!("Shutting down endpoint server...");
+    if let Some(shutdown_tx) = service_hub.server_thread_shutdown_tx {
+        eprintln!("Shutting down service hub...");
         if let Err(e) = shutdown_tx.send(()) {
             eprintln!("Failed to send shutdown signal: {:?}", e);
             // Don't panic, just continue with cleanup.
@@ -284,12 +285,12 @@ pub unsafe extern "C" fn ten_endpoint_system_shutdown(
             );
         }
     } else {
-        eprintln!("No shutdown channel available for the endpoint server");
+        eprintln!("No shutdown channel available for the service hub");
     }
 
     // Wait for the server thread to complete with a timeout.
-    if let Some(server_thread_handle) = system.server_thread_handle {
-        eprintln!("Waiting for endpoint server to shut down...");
+    if let Some(server_thread_handle) = service_hub.server_thread_handle {
+        eprintln!("Waiting for service hub to shut down...");
 
         // Define a timeout for the join operation.
         const SHUTDOWN_TIMEOUT_SECS: u64 = 10;
@@ -314,16 +315,18 @@ pub unsafe extern "C" fn ten_endpoint_system_shutdown(
             )) {
                 Ok(join_result) => match join_result {
                     Ok(_) => {
-                        eprintln!("Endpoint server thread joined successfully")
+                        eprintln!(
+                            "Service hub server thread joined successfully"
+                        )
                     }
                     Err(e) => eprintln!(
-                        "Error joining endpoint server thread: {:?}",
+                        "Error joining service hub server thread: {:?}",
                         e
                     ),
                 },
                 Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {
                     eprintln!(
-                        "WARNING: Endpoint server thread did not shut down \
+                        "WARNING: Service hub server thread did not shut down \
                          within timeout ({}s)",
                         SHUTDOWN_TIMEOUT_SECS
                     );
@@ -344,9 +347,9 @@ pub unsafe extern "C" fn ten_endpoint_system_shutdown(
             // scope.
         });
     } else {
-        eprintln!("No thread handle available for the endpoint server");
+        eprintln!("No thread handle available for the service hub");
     }
 
     // The system will be automatically dropped here, cleaning up all resources.
-    eprintln!("Endpoint server resources cleaned up");
+    eprintln!("Service hub resources cleaned up");
 }

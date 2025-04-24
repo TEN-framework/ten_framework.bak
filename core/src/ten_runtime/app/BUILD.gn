@@ -10,8 +10,8 @@ import("//build/ten_runtime/options.gni")
 ten_runtime_glob("app") {
   file_list = all_native_files
   deps = [
-    "endpoint_system",
     "msg_interface",
+    "service_hub",
     "ten_env",
   ]
 

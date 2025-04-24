@@ -10,8 +10,6 @@
 
 #include "include_internal/ten_runtime/extension_thread/extension_thread.h"
 
-typedef struct TelemetrySystem TelemetrySystem;
-
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
 
 TEN_RUNTIME_PRIVATE_API void

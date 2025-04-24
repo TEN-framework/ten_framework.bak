@@ -13,7 +13,6 @@
 #include "ten_utils/value/value.h"
 
 typedef struct ten_app_t ten_app_t;
-typedef struct TelemetrySystem TelemetrySystem;
 
 TEN_RUNTIME_PRIVATE_API bool ten_app_init_telemetry_system_config(
     ten_app_t *self, ten_value_t *value);
