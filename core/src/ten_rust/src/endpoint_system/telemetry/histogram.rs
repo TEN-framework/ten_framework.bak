@@ -8,7 +8,7 @@ use std::os::raw::c_char;
 
 use anyhow::Result;
 
-use crate::endpoint::telemetry::convert_label_values;
+use crate::endpoint_system::telemetry::convert_label_values;
 
 use super::{EndpointSystem, MetricHandle};
 

@@ -9,7 +9,7 @@ pub mod base_dir_pkg_info;
 mod bindings;
 pub mod constants;
 pub mod crypto;
-pub mod endpoint;
+pub mod endpoint_system;
 pub mod env;
 pub mod fs;
 pub mod graph;
