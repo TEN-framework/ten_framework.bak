@@ -4,9 +4,9 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-#if defined(TEN_ENABLE_TEN_RUST_APIS)
-
 #include "include_internal/ten_runtime/app/service_hub/service_hub.h"
+
+#if defined(TEN_ENABLE_TEN_RUST_APIS)
 
 #include "include_internal/ten_runtime/app/app.h"
 #include "include_internal/ten_runtime/app/service_hub/telemetry/telemetry.h"
