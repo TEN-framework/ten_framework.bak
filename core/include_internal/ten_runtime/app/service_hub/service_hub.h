@@ -10,10 +10,10 @@
 
 #include <stdbool.h>
 
-#if defined(TEN_ENABLE_TEN_RUST_APIS)
-
 #include "ten_runtime/app/app.h"
 #include "ten_utils/value/value.h"
+
+#if defined(TEN_ENABLE_TEN_RUST_APIS)
 
 typedef struct ServiceHub ServiceHub;
 typedef struct MetricHandle MetricHandle;
