@@ -201,48 +201,122 @@ fn create_service_hub_server_thread(
 ///
 /// # Safety
 ///
-/// This function takes a raw C string pointer. The pointer must be valid and
-/// point to a properly null-terminated string. The returned pointer must be
-/// freed with `ten_service_hub_shutdown` to avoid memory leaks.
+/// This function takes raw C string pointers and port values.
+/// The pointers must be valid and point to properly null-terminated strings or
+/// be NULL. The returned pointer must be freed with `ten_service_hub_shutdown`
+/// to avoid memory leaks.
 #[no_mangle]
 pub unsafe extern "C" fn ten_service_hub_create(
-    endpoint: *const c_char,
+    telemetry_host: *const c_char,
+    telemetry_port: u32,
+    api_host: *const c_char,
+    api_port: u32,
 ) -> *mut ServiceHub {
-    // Safely convert C string to Rust string.
-    let endpoint_str = match CStr::from_ptr(endpoint).to_str() {
-        Ok(s) if !s.trim().is_empty() => s.to_string(),
-        _ => return ptr::null_mut(),
-    };
+    // Check if both hosts are NULL, if so, return null.
+    if telemetry_host.is_null() && api_host.is_null() {
+        eprintln!(
+            "Both telemetry and API hosts are NULL, not starting service hub"
+        );
+        return ptr::null_mut();
+    }
 
     // Create a new Prometheus registry.
-    //
-    // Note: `prometheus::Registry` internally uses `Arc` and `RwLock` to
-    // achieve thread safety, so there is no need to add additional locking
-    // mechanisms. It can be used directly here.
     let registry = Registry::new();
 
-    // Start the actix-web server to provide metrics data at the specified path.
-    let server = match create_service_hub_server_with_retry(
-        &endpoint_str,
-        registry.clone(),
-    ) {
-        Some(server) => server,
-        None => return ptr::null_mut(),
+    // Convert C strings to Rust strings if not NULL.
+    let telemetry_host_str = if !telemetry_host.is_null() {
+        match CStr::from_ptr(telemetry_host).to_str() {
+            Ok(s) if !s.trim().is_empty() => Some(s.to_string()),
+            _ => None,
+        }
+    } else {
+        None
     };
 
-    // Create the server thread and get the shutdown channel.
-    let (server_thread_handle, shutdown_tx) =
-        create_service_hub_server_thread(server);
-
-    // Create and return the ServiceHub.
-    let service_hub = ServiceHub {
-        registry,
-        server_thread_handle: Some(server_thread_handle),
-        server_thread_shutdown_tx: Some(shutdown_tx),
+    let api_host_str = if !api_host.is_null() {
+        match CStr::from_ptr(api_host).to_str() {
+            Ok(s) if !s.trim().is_empty() => Some(s.to_string()),
+            _ => None,
+        }
+    } else {
+        None
     };
 
-    // Convert to raw pointer for C API.
-    Box::into_raw(Box::new(service_hub))
+    // Format the endpoints if hosts are available.
+    let telemetry_endpoint = telemetry_host_str
+        .as_ref()
+        .map(|host| format!("{}:{}", host, telemetry_port));
+    let api_endpoint =
+        api_host_str.as_ref().map(|host| format!("{}:{}", host, api_port));
+
+    // If both endpoints are the same and not None, use a single server.
+    if telemetry_endpoint.is_some() && api_endpoint.is_some() {
+        if telemetry_endpoint == api_endpoint {
+            let endpoint = telemetry_endpoint.unwrap();
+            eprintln!("Creating combined telemetry/API server at {}", endpoint);
+
+            // Create a server with both routes.
+            let registry_clone = registry.clone();
+            let server = match create_service_hub_server_with_retry(
+                &endpoint,
+                registry_clone,
+            ) {
+                Some(server) => server,
+                None => {
+                    eprintln!("Failed to bind server to {}", endpoint);
+                    return ptr::null_mut();
+                }
+            };
+
+            let (thread_handle, shutdown_tx) =
+                create_service_hub_server_thread(server);
+
+            return Box::into_raw(Box::new(ServiceHub {
+                registry,
+                server_thread_handle: Some(thread_handle),
+                server_thread_shutdown_tx: Some(shutdown_tx),
+            }));
+        } else {
+            // TODO
+        }
+    }
+
+    if telemetry_endpoint.is_some() && api_endpoint.is_none() {
+        // Telemetry only.
+        let endpoint = telemetry_endpoint.unwrap();
+        eprintln!("Creating telemetry-only server at {}", endpoint);
+
+        // Create telemetry server with retry mechanism.
+        let registry_clone = registry.clone();
+        let server = match create_service_hub_server_with_retry(
+            &endpoint,
+            registry_clone,
+        ) {
+            Some(server) => server,
+            None => {
+                eprintln!("Failed to bind telemetry server to {}", endpoint);
+                return ptr::null_mut();
+            }
+        };
+
+        let (thread_handle, shutdown_tx) =
+            create_service_hub_server_thread(server);
+
+        return Box::into_raw(Box::new(ServiceHub {
+            registry,
+            server_thread_handle: Some(thread_handle),
+            server_thread_shutdown_tx: Some(shutdown_tx),
+        }));
+    }
+
+    if api_endpoint.is_some() && telemetry_endpoint.is_none() {
+        // API only.
+        // TODO
+    }
+
+    // This should never happen due to the checks above.
+    eprintln!("Unexpected error in service hub creation");
+    ptr::null_mut()
 }
 
 /// Shut down the endpoint system, stop the server, and clean up all resources.
