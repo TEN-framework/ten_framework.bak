@@ -8,9 +8,9 @@
 
 #include "ten_runtime/ten_config.h"
 
-#if defined(TEN_ENABLE_TEN_RUST_APIS)
-
 #include <stdbool.h>
+
+#if defined(TEN_ENABLE_TEN_RUST_APIS)
 
 #include "ten_runtime/app/app.h"
 #include "ten_utils/value/value.h"
