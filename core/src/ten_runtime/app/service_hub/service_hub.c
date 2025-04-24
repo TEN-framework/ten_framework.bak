@@ -27,7 +27,10 @@ void ten_app_init_service_hub(ten_app_t *self) {
   ten_service_hub_init(&self->service_hub);
 }
 
+#endif
+
 bool ten_app_init_service_hub_config(ten_app_t *self, ten_value_t *value) {
+#if defined(TEN_ENABLE_TEN_RUST_APIS)
   TEN_ASSERT(self, "Should not happen.");
   TEN_ASSERT(ten_app_check_integrity(self, true), "Should not happen.");
 
@@ -71,9 +74,12 @@ bool ten_app_init_service_hub_config(ten_app_t *self, ten_value_t *value) {
   }
 
   ten_app_service_hub_create_metric(self);
+#endif
 
   return true;
 }
+
+#if defined(TEN_ENABLE_TEN_RUST_APIS)
 
 void ten_app_deinit_service_hub(ten_app_t *self) {
   if (self->service_hub.service_hub) {
