@@ -193,8 +193,8 @@ fn create_server_app(
 fn create_server_and_bind_to_addresses(
     binding_addresses: &[String],
     registry: Registry,
-    telemetry_endpoint: Option<String>,
-    api_endpoint: Option<String>,
+    telemetry_endpoint: &Option<String>,
+    api_endpoint: &Option<String>,
 ) -> (Option<actix_web::dev::Server>, Vec<String>) {
     let mut bind_errors = Vec::new();
 
@@ -283,8 +283,8 @@ fn create_server_and_bind_to_addresses(
 ///
 /// Each endpoint will have appropriate routes configured.
 fn create_service_hub_server_with_retry(
-    telemetry_endpoint: Option<String>,
-    api_endpoint: Option<String>,
+    telemetry_endpoint: &Option<String>,
+    api_endpoint: &Option<String>,
     registry: Registry,
 ) -> Option<actix_web::dev::Server> {
     // If both endpoints are None, return None early.
@@ -300,7 +300,7 @@ fn create_service_hub_server_with_retry(
 
     // Get addresses to bind to.
     let binding_addresses =
-        determine_binding_addresses(&telemetry_endpoint, &api_endpoint);
+        determine_binding_addresses(telemetry_endpoint, api_endpoint);
 
     // Try to create and bind the HTTP server, with retries if it fails.
     loop {
@@ -311,8 +311,8 @@ fn create_service_hub_server_with_retry(
         let (bound_server, bind_errors) = create_server_and_bind_to_addresses(
             &binding_addresses,
             registry.clone(),
-            telemetry_endpoint.clone(),
-            api_endpoint.clone(),
+            telemetry_endpoint,
+            api_endpoint,
         );
 
         // If we've successfully bound to the specified addresses, return the
@@ -492,11 +492,10 @@ pub unsafe extern "C" fn ten_service_hub_create(
 
             // Create a server with both routes.
             let registry_clone = registry.clone();
-            let telemetry_endpoint_clone = telemetry_endpoint.clone();
-            let api_endpoint_clone = api_endpoint.clone();
+
             let server = match create_service_hub_server_with_retry(
-                telemetry_endpoint_clone,
-                api_endpoint_clone,
+                &telemetry_endpoint,
+                &api_endpoint,
                 registry_clone,
             ) {
                 Some(server) => server,
@@ -524,11 +523,10 @@ pub unsafe extern "C" fn ten_service_hub_create(
             );
 
             let registry_clone = registry.clone();
-            let telemetry_endpoint_clone = telemetry_endpoint.clone();
-            let api_endpoint_clone = api_endpoint.clone();
+
             let server = match create_service_hub_server_with_retry(
-                telemetry_endpoint_clone,
-                api_endpoint_clone,
+                &telemetry_endpoint,
+                &api_endpoint,
                 registry_clone,
             ) {
                 Some(server) => server,
@@ -560,10 +558,10 @@ pub unsafe extern "C" fn ten_service_hub_create(
 
         // Create telemetry server with retry mechanism.
         let registry_clone = registry.clone();
-        let telemetry_endpoint_clone = telemetry_endpoint.clone();
+
         let server = match create_service_hub_server_with_retry(
-            telemetry_endpoint_clone,
-            None,
+            &telemetry_endpoint,
+            &None,
             registry_clone,
         ) {
             Some(server) => server,
@@ -590,10 +588,10 @@ pub unsafe extern "C" fn ten_service_hub_create(
 
         // Create API server with retry mechanism.
         let registry_clone = registry.clone();
-        let api_endpoint_clone = api_endpoint.clone();
+
         let server = match create_service_hub_server_with_retry(
-            None,
-            api_endpoint_clone,
+            &None,
+            &api_endpoint,
             registry_clone,
         ) {
             Some(server) => server,
