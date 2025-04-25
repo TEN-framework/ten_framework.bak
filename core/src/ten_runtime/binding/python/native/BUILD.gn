@@ -90,10 +90,7 @@ ten_shared_library("ten_runtime_python") {
     remove_configs = [ "//.gnfiles/build/toolchain/common:disallow_undefined" ]
   }
 
-  sources = [
-    "//core/src/ten_runtime/binding/python/native/build_template/preserved_metadata.c",
-    "init.c",
-  ]
+  sources = [ "init.c" ]
 
   deps = [
     "addon",

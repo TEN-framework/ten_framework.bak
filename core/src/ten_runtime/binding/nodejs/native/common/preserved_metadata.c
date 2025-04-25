@@ -6,7 +6,9 @@
 //
 #include "include_internal/ten_runtime/common/preserved_metadata.h"
 
-static char metadata[] = "version={{ VERSION }}";
+#include "include_internal/ten_runtime/binding/nodejs/common/version.h"
+
+static char metadata[] = "version=" TEN_RUNTIME_NODEJS_BINDING_VERSION;
 
 void ten_preserved_metadata(void) {
   ((char volatile *)metadata)[0] = metadata[0];
