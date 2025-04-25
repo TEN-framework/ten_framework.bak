@@ -6,5 +6,5 @@
 //
 pub const METRICS: &str = "/metrics";
 
-pub const ENDPOINT_SERVER_BIND_MAX_RETRIES: u32 = 5;
-pub const ENDPOINT_SERVER_BIND_RETRY_INTERVAL_SECS: u64 = 5; // seconds
+pub const SERVICE_HUB_SERVER_BIND_MAX_RETRIES: u32 = 5;
+pub const SERVICE_HUB_SERVER_BIND_RETRY_INTERVAL_SECS: u64 = 5; // seconds

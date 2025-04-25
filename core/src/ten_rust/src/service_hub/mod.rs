@@ -19,11 +19,11 @@ use futures::FutureExt;
 use prometheus::Registry;
 
 use crate::constants::{
-    ENDPOINT_SERVER_BIND_MAX_RETRIES, ENDPOINT_SERVER_BIND_RETRY_INTERVAL_SECS,
+    SERVICE_HUB_SERVER_BIND_MAX_RETRIES,
+    SERVICE_HUB_SERVER_BIND_RETRY_INTERVAL_SECS,
 };
 
-/// The system for the endpoint server.
-pub struct EndpointSystem {
+pub struct ServiceHub {
     /// The Prometheus registry.
     registry: Registry,
 
@@ -50,14 +50,14 @@ fn configure_routes(cfg: &mut web::ServiceConfig, registry: Registry) {
 /// This function attempts to bind an HTTP server to the specified endpoint.
 /// If binding fails, it will retry up to a configured maximum number of
 /// attempts with a delay between each attempt.
-fn create_endpoint_server_with_retry(
+fn create_service_hub_server_with_retry(
     endpoint_str: &str,
     registry: Registry,
 ) -> Option<actix_web::dev::Server> {
     let mut attempts = 0;
-    let max_attempts = ENDPOINT_SERVER_BIND_MAX_RETRIES;
+    let max_attempts = SERVICE_HUB_SERVER_BIND_MAX_RETRIES;
     let wait_duration = std::time::Duration::from_secs(
-        ENDPOINT_SERVER_BIND_RETRY_INTERVAL_SECS,
+        SERVICE_HUB_SERVER_BIND_RETRY_INTERVAL_SECS,
     );
 
     // Try to create and bind the HTTP server, with retries if it fails.
@@ -106,8 +106,8 @@ fn create_endpoint_server_with_retry(
                     endpoint_str,
                     attempts,
                     max_attempts,
-                    ENDPOINT_SERVER_BIND_RETRY_INTERVAL_SECS,
-                    if ENDPOINT_SERVER_BIND_RETRY_INTERVAL_SECS == 1 {
+                    SERVICE_HUB_SERVER_BIND_RETRY_INTERVAL_SECS,
+                    if SERVICE_HUB_SERVER_BIND_RETRY_INTERVAL_SECS == 1 {
                         ""
                     } else {
                         "s"
@@ -127,7 +127,7 @@ fn create_endpoint_server_with_retry(
 ///
 /// This function encapsulates the logic for running an actix server in a
 /// separate thread, handling both normal operation and shutdown requests.
-fn create_server_thread(
+fn create_service_hub_server_thread(
     server: actix_web::dev::Server,
 ) -> (thread::JoinHandle<()>, oneshot::Sender<()>) {
     // Get a handle to the server to control it later.
@@ -201,47 +201,122 @@ fn create_server_thread(
 ///
 /// # Safety
 ///
-/// This function takes a raw C string pointer. The pointer must be valid and
-/// point to a properly null-terminated string. The returned pointer must be
-/// freed with `ten_endpoint_system_shutdown` to avoid memory leaks.
+/// This function takes raw C string pointers and port values.
+/// The pointers must be valid and point to properly null-terminated strings or
+/// be NULL. The returned pointer must be freed with `ten_service_hub_shutdown`
+/// to avoid memory leaks.
 #[no_mangle]
-pub unsafe extern "C" fn ten_endpoint_system_create(
-    endpoint: *const c_char,
-) -> *mut EndpointSystem {
-    // Safely convert C string to Rust string.
-    let endpoint_str = match CStr::from_ptr(endpoint).to_str() {
-        Ok(s) if !s.trim().is_empty() => s.to_string(),
-        _ => return ptr::null_mut(),
-    };
+pub unsafe extern "C" fn ten_service_hub_create(
+    telemetry_host: *const c_char,
+    telemetry_port: u32,
+    api_host: *const c_char,
+    api_port: u32,
+) -> *mut ServiceHub {
+    // Check if both hosts are NULL, if so, return null.
+    if telemetry_host.is_null() && api_host.is_null() {
+        eprintln!(
+            "Both telemetry and API hosts are NULL, not starting service hub"
+        );
+        return ptr::null_mut();
+    }
 
     // Create a new Prometheus registry.
-    //
-    // Note: `prometheus::Registry` internally uses `Arc` and `RwLock` to
-    // achieve thread safety, so there is no need to add additional locking
-    // mechanisms. It can be used directly here.
     let registry = Registry::new();
 
-    // Start the actix-web server to provide metrics data at the specified path.
-    let server = match create_endpoint_server_with_retry(
-        &endpoint_str,
-        registry.clone(),
-    ) {
-        Some(server) => server,
-        None => return ptr::null_mut(),
+    // Convert C strings to Rust strings if not NULL.
+    let telemetry_host_str = if !telemetry_host.is_null() {
+        match CStr::from_ptr(telemetry_host).to_str() {
+            Ok(s) if !s.trim().is_empty() => Some(s.to_string()),
+            _ => None,
+        }
+    } else {
+        None
     };
 
-    // Create the server thread and get the shutdown channel.
-    let (server_thread_handle, shutdown_tx) = create_server_thread(server);
-
-    // Create and return the TelemetrySystem.
-    let system = EndpointSystem {
-        registry,
-        server_thread_handle: Some(server_thread_handle),
-        server_thread_shutdown_tx: Some(shutdown_tx),
+    let api_host_str = if !api_host.is_null() {
+        match CStr::from_ptr(api_host).to_str() {
+            Ok(s) if !s.trim().is_empty() => Some(s.to_string()),
+            _ => None,
+        }
+    } else {
+        None
     };
 
-    // Convert to raw pointer for C API.
-    Box::into_raw(Box::new(system))
+    // Format the endpoints if hosts are available.
+    let telemetry_endpoint = telemetry_host_str
+        .as_ref()
+        .map(|host| format!("{}:{}", host, telemetry_port));
+    let api_endpoint =
+        api_host_str.as_ref().map(|host| format!("{}:{}", host, api_port));
+
+    // If both endpoints are the same and not None, use a single server.
+    if telemetry_endpoint.is_some() && api_endpoint.is_some() {
+        if telemetry_endpoint == api_endpoint {
+            let endpoint = telemetry_endpoint.unwrap();
+            eprintln!("Creating combined telemetry/API server at {}", endpoint);
+
+            // Create a server with both routes.
+            let registry_clone = registry.clone();
+            let server = match create_service_hub_server_with_retry(
+                &endpoint,
+                registry_clone,
+            ) {
+                Some(server) => server,
+                None => {
+                    eprintln!("Failed to bind server to {}", endpoint);
+                    return ptr::null_mut();
+                }
+            };
+
+            let (thread_handle, shutdown_tx) =
+                create_service_hub_server_thread(server);
+
+            return Box::into_raw(Box::new(ServiceHub {
+                registry,
+                server_thread_handle: Some(thread_handle),
+                server_thread_shutdown_tx: Some(shutdown_tx),
+            }));
+        } else {
+            // TODO
+        }
+    }
+
+    if telemetry_endpoint.is_some() && api_endpoint.is_none() {
+        // Telemetry only.
+        let endpoint = telemetry_endpoint.unwrap();
+        eprintln!("Creating telemetry-only server at {}", endpoint);
+
+        // Create telemetry server with retry mechanism.
+        let registry_clone = registry.clone();
+        let server = match create_service_hub_server_with_retry(
+            &endpoint,
+            registry_clone,
+        ) {
+            Some(server) => server,
+            None => {
+                eprintln!("Failed to bind telemetry server to {}", endpoint);
+                return ptr::null_mut();
+            }
+        };
+
+        let (thread_handle, shutdown_tx) =
+            create_service_hub_server_thread(server);
+
+        return Box::into_raw(Box::new(ServiceHub {
+            registry,
+            server_thread_handle: Some(thread_handle),
+            server_thread_shutdown_tx: Some(shutdown_tx),
+        }));
+    }
+
+    if api_endpoint.is_some() && telemetry_endpoint.is_none() {
+        // API only.
+        // TODO
+    }
+
+    // This should never happen due to the checks above.
+    eprintln!("Unexpected error in service hub creation");
+    ptr::null_mut()
 }
 
 /// Shut down the endpoint system, stop the server, and clean up all resources.
@@ -254,28 +329,28 @@ pub unsafe extern "C" fn ten_endpoint_system_create(
 /// # Safety
 ///
 /// This function assumes that `system_ptr` is either null or a valid pointer to
-/// a `TelemetrySystem` that was previously created with
-/// `ten_endpoint_system_create`. Calling this function with an invalid pointer
+/// a `ServiceHub` that was previously created with
+/// `ten_service_hub_create`. Calling this function with an invalid pointer
 /// will lead to undefined behavior.
 #[no_mangle]
-pub unsafe extern "C" fn ten_endpoint_system_shutdown(
-    system_ptr: *mut EndpointSystem,
+pub unsafe extern "C" fn ten_service_hub_shutdown(
+    service_hub_ptr: *mut ServiceHub,
 ) {
-    debug_assert!(!system_ptr.is_null(), "System pointer is null");
+    debug_assert!(!service_hub_ptr.is_null(), "System pointer is null");
     // Early return for null pointers.
-    if system_ptr.is_null() {
-        eprintln!("Warning: Attempt to shut down null TelemetrySystem pointer");
+    if service_hub_ptr.is_null() {
+        eprintln!("Warning: Attempt to shut down null ServiceHub pointer");
         return;
     }
 
     // Retrieve ownership using `Box::from_raw`. This transfers ownership to
     // Rust, and the Box will be automatically dropped when it goes out of
     // scope.
-    let system = Box::from_raw(system_ptr);
+    let service_hub = Box::from_raw(service_hub_ptr);
 
     // Notify the actix system to shut down through the `oneshot` channel.
-    if let Some(shutdown_tx) = system.server_thread_shutdown_tx {
-        eprintln!("Shutting down endpoint server...");
+    if let Some(shutdown_tx) = service_hub.server_thread_shutdown_tx {
+        eprintln!("Shutting down service hub...");
         if let Err(e) = shutdown_tx.send(()) {
             eprintln!("Failed to send shutdown signal: {:?}", e);
             // Don't panic, just continue with cleanup.
@@ -284,12 +359,12 @@ pub unsafe extern "C" fn ten_endpoint_system_shutdown(
             );
         }
     } else {
-        eprintln!("No shutdown channel available for the endpoint server");
+        eprintln!("No shutdown channel available for the service hub");
     }
 
     // Wait for the server thread to complete with a timeout.
-    if let Some(server_thread_handle) = system.server_thread_handle {
-        eprintln!("Waiting for endpoint server to shut down...");
+    if let Some(server_thread_handle) = service_hub.server_thread_handle {
+        eprintln!("Waiting for service hub to shut down...");
 
         // Define a timeout for the join operation.
         const SHUTDOWN_TIMEOUT_SECS: u64 = 10;
@@ -314,16 +389,18 @@ pub unsafe extern "C" fn ten_endpoint_system_shutdown(
             )) {
                 Ok(join_result) => match join_result {
                     Ok(_) => {
-                        eprintln!("Endpoint server thread joined successfully")
+                        eprintln!(
+                            "Service hub server thread joined successfully"
+                        )
                     }
                     Err(e) => eprintln!(
-                        "Error joining endpoint server thread: {:?}",
+                        "Error joining service hub server thread: {:?}",
                         e
                     ),
                 },
                 Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {
                     eprintln!(
-                        "WARNING: Endpoint server thread did not shut down \
+                        "WARNING: Service hub server thread did not shut down \
                          within timeout ({}s)",
                         SHUTDOWN_TIMEOUT_SECS
                     );
@@ -344,9 +421,9 @@ pub unsafe extern "C" fn ten_endpoint_system_shutdown(
             // scope.
         });
     } else {
-        eprintln!("No thread handle available for the endpoint server");
+        eprintln!("No thread handle available for the service hub");
     }
 
     // The system will be automatically dropped here, cleaning up all resources.
-    eprintln!("Endpoint server resources cleaned up");
+    eprintln!("Service hub resources cleaned up");
 }

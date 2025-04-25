@@ -43,9 +43,12 @@ class test_app : public ten::app_t {
                         "log": {
                           "level": 2
                         },
-                        "telemetry": {
-                          "enabled": true,
-                          "endpoint": "0.0.0.0:49484"
+                        "services": {
+                          "telemetry": {
+                            "enabled": true,
+                            "host": "0.0.0.0",
+                            "port": 49484
+                          }
                         }
                       }
                     })"

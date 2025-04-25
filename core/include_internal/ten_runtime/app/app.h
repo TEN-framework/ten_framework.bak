@@ -23,6 +23,10 @@
 #include "ten_utils/lib/signature.h"
 #include "ten_utils/sanitizer/thread_check.h"
 
+#if defined(TEN_ENABLE_TEN_RUST_APIS)
+#include "include_internal/ten_runtime/app/service_hub/service_hub.h"
+#endif
+
 #define TEN_APP_SIGNATURE 0xF4551554E1E1240EU
 
 typedef struct ten_connection_t ten_connection_t;
@@ -31,7 +35,7 @@ typedef struct ten_protocol_t ten_protocol_t;
 typedef struct ten_path_table_t ten_path_table_t;
 // The symbols for these two below are written in Rust code, so the naming
 // convention is a bit different.
-typedef struct TelemetrySystem TelemetrySystem;
+typedef struct ServiceHub ServiceHub;
 typedef struct MetricHandle MetricHandle;
 
 typedef enum TEN_APP_STATE {
@@ -126,8 +130,7 @@ typedef struct ten_app_t {
   ten_path_table_t *path_table;
 
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
-  TelemetrySystem *telemetry_system;
-  MetricHandle *metric_extension_thread_msg_queue_stay_time_us;
+  ten_service_hub_t service_hub;
 #endif
 
   ten_addon_store_t extension_store;

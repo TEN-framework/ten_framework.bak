@@ -8,12 +8,12 @@ use std::os::raw::c_char;
 
 use anyhow::Result;
 
-use crate::endpoint_system::telemetry::convert_label_values;
+use crate::service_hub::telemetry::convert_label_values;
 
-use super::{EndpointSystem, MetricHandle};
+use super::{MetricHandle, ServiceHub};
 
 pub fn create_metric_gauge(
-    system: &mut EndpointSystem,
+    system: &mut ServiceHub,
     name_str: &str,
     help_str: &str,
 ) -> Result<MetricHandle> {
@@ -31,7 +31,7 @@ pub fn create_metric_gauge(
 }
 
 pub fn create_metric_gauge_with_labels(
-    system: &mut EndpointSystem,
+    system: &mut ServiceHub,
     name_str: &str,
     help_str: &str,
     label_names: &[&str],

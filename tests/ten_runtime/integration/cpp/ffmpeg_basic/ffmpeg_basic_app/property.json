@@ -4,8 +4,10 @@
     "log": {
       "level": 2
     },
-    "telemetry": {
-      "enabled": true
+    "services": {
+      "telemetry": {
+        "enabled": true
+      }
     },
     "predefined_graphs": [
       {

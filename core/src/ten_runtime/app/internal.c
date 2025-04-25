@@ -14,7 +14,7 @@
 #include "include_internal/ten_runtime/app/metadata.h"
 #include "include_internal/ten_runtime/app/msg_interface/common.h"
 #include "include_internal/ten_runtime/app/predefined_graph.h"
-#include "include_internal/ten_runtime/app/telemetry.h"
+#include "include_internal/ten_runtime/app/service_hub/service_hub.h"
 #include "include_internal/ten_runtime/connection/connection.h"
 #include "include_internal/ten_runtime/engine/engine.h"
 #include "ten_runtime/app/app.h"
@@ -81,8 +81,10 @@ void ten_app_start(ten_app_t *self) {
 
   TEN_LOGD("TEN app runloop ends.");
 
+#if defined(TEN_ENABLE_TEN_RUST_APIS)
   // Clean up telemetry system after the runloop exits.
-  ten_app_deinit_telemetry_system(self);
+  ten_app_deinit_service_hub(self);
+#endif
 }
 
 void ten_app_add_orphan_connection(ten_app_t *self,

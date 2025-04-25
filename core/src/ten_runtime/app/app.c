@@ -10,7 +10,6 @@
 #include "include_internal/ten_runtime/app/close.h"
 #include "include_internal/ten_runtime/app/engine_interface.h"
 #include "include_internal/ten_runtime/app/migration.h"
-#include "include_internal/ten_runtime/app/telemetry.h"
 #include "include_internal/ten_runtime/connection/connection.h"
 #include "include_internal/ten_runtime/extension_group/extension_group.h"
 #include "include_internal/ten_runtime/global/global.h"
@@ -150,8 +149,7 @@ ten_app_t *ten_app_create(ten_app_on_configure_func_t on_configure,
   self->property_info = NULL;
 
 #if defined(TEN_ENABLE_TEN_RUST_APIS)
-  self->telemetry_system = NULL;
-  self->metric_extension_thread_msg_queue_stay_time_us = NULL;
+  ten_service_hub_init(&self->service_hub);
 #endif
 
   TEN_ADDON_STORE_INIT(self->extension_store);

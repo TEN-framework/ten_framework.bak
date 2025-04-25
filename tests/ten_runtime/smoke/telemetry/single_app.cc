@@ -43,8 +43,10 @@ class test_app : public ten::app_t {
                         "log": {
                           "level": 2
                         },
-                        "telemetry": {
-                          "enabled": true
+                        "services": {
+                          "telemetry": {
+                            "enabled": true
+                          }
                         }
                       }
                     })"

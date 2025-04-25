@@ -167,6 +167,11 @@
 #define TEN_STR_STAR "*"
 #define TEN_STR_ADDON_BASE_DIR_FIND_FROM_APP_BASE_DIR "=*=find_from_app=*="
 
+// Services.
+#define TEN_STR_SERVICES "services"
+#define TEN_STR_HOST "host"
+#define TEN_STR_PORT "port"
+
 // Telemetry.
 #define TEN_STR_TELEMETRY "telemetry"
 #define TEN_STR_ENABLED "enabled"
