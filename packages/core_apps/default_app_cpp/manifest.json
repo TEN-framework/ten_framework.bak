@@ -3,7 +3,8 @@
   "name": "default_app_cpp",
   "version": "0.10.0",
   "tags": [
-    "cpp"
+    "cpp",
+    "template"
   ],
   "dependencies": [
     {

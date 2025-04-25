@@ -3,7 +3,8 @@
   "name": "{{package_name}}",
   "version": "0.10.0",
   "tags": [
-    "python"
+    "python",
+    "template"
   ],
   "dependencies": [
     {

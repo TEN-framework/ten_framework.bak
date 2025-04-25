@@ -3,7 +3,8 @@
   "name": "{{package_name}}",
   "version": "0.10.0",
   "tags": [
-    "cpp"
+    "cpp",
+    "template"
   ],
   "dependencies": [
     {
