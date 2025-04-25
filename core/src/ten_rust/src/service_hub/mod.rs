@@ -56,6 +56,220 @@ fn configure_routes(
     }
 }
 
+fn determine_binding_addresses(
+    telemetry_endpoint: &Option<String>,
+    api_endpoint: &Option<String>,
+) -> Vec<String> {
+    // Determine if both endpoints are available and if they are different.
+    let has_both_endpoints =
+        telemetry_endpoint.is_some() && api_endpoint.is_some();
+    let same_endpoint =
+        has_both_endpoints && telemetry_endpoint == api_endpoint;
+
+    if has_both_endpoints && !same_endpoint {
+        // Both endpoints are different, bind to both.
+        vec![
+            telemetry_endpoint.as_ref().cloned(),
+            api_endpoint.as_ref().cloned(),
+        ]
+        .into_iter()
+        .flatten()
+        .collect::<Vec<_>>()
+    } else if same_endpoint {
+        // Both endpoints are the same, bind to just one.
+        telemetry_endpoint.as_ref().map(|e| vec![e.clone()]).unwrap_or_default()
+    } else if telemetry_endpoint.is_some() {
+        // Only telemetry endpoint.
+        telemetry_endpoint.as_ref().map(|e| vec![e.clone()]).unwrap_or_default()
+    } else {
+        // Only API endpoint.
+        api_endpoint.as_ref().map(|e| vec![e.clone()]).unwrap_or_default()
+    }
+}
+
+/// Creates a configured App based on the provided endpoints.
+///
+/// This function configures routes for the App based on whether the telemetry
+/// and API endpoints are provided, and whether they are the same or different.
+fn create_server_app(
+    registry: Registry,
+    telemetry_endpoint: &Option<String>,
+    api_endpoint: &Option<String>,
+) -> App<
+    impl actix_web::dev::ServiceFactory<
+        actix_web::dev::ServiceRequest,
+        Config = (),
+        Response = actix_web::dev::ServiceResponse,
+        Error = actix_web::Error,
+        InitError = (),
+    >,
+> {
+    let has_both = telemetry_endpoint.is_some() && api_endpoint.is_some();
+    let same_ep = has_both && telemetry_endpoint == api_endpoint;
+
+    let app_builder = App::new();
+
+    if has_both && !same_ep {
+        // Both endpoints are provided and they are different. We need to use
+        // guards to ensure the right routes are bound to the right endpoints.
+        let telemetry_port = telemetry_endpoint
+            .as_ref()
+            .and_then(|s| s.rsplit(':').next().map(|p| p.to_string()));
+
+        let api_port = api_endpoint
+            .as_ref()
+            .and_then(|s| s.rsplit(':').next().map(|p| p.to_string()));
+
+        app_builder
+            // Add telemetry routes with guard.
+            .service(
+                web::scope("")
+                    .guard(actix_web::guard::fn_guard(move |ctx| {
+                        if let Some(port) = &telemetry_port {
+                            // Get the host/port info from the request.
+                            let host = ctx
+                                .head()
+                                .uri
+                                .authority()
+                                .map(|auth| auth.as_str())
+                                .unwrap_or("");
+
+                            // Check if the port matches.
+                            host.rsplit(':')
+                                .next()
+                                .map(|p| p == port)
+                                .unwrap_or(false)
+                        } else {
+                            false
+                        }
+                    }))
+                    .configure(|cfg| {
+                        configure_routes(cfg, registry.clone(), true, false)
+                    }),
+            )
+            // Add API routes with guard.
+            .service(
+                web::scope("")
+                    .guard(actix_web::guard::fn_guard(move |ctx| {
+                        if let Some(port) = &api_port {
+                            // Get the host/port info from the request.
+                            let host = ctx
+                                .head()
+                                .uri
+                                .authority()
+                                .map(|auth| auth.as_str())
+                                .unwrap_or("");
+
+                            // Check if the port matches.
+                            host.rsplit(':')
+                                .next()
+                                .map(|p| p == port)
+                                .unwrap_or(false)
+                        } else {
+                            false
+                        }
+                    }))
+                    .configure(|cfg| {
+                        configure_routes(cfg, registry.clone(), false, true)
+                    }),
+            )
+    } else {
+        // Either single endpoint or both endpoints are the same.
+        // Configure all relevant routes for the endpoint(s).
+        let is_telemetry = telemetry_endpoint.is_some();
+        let is_api = api_endpoint.is_some();
+
+        app_builder.configure(|cfg| {
+            configure_routes(cfg, registry.clone(), is_telemetry, is_api)
+        })
+    }
+}
+
+/// Create a server and attempt to bind it to the given addresses.
+///
+/// Returns a tuple containing:
+/// - An Option with the bound server if successful, or None if binding failed
+/// - A vector of error messages if binding failed
+fn create_server_and_bind_to_addresses(
+    binding_addresses: &[String],
+    registry: Registry,
+    telemetry_endpoint: Option<String>,
+    api_endpoint: Option<String>,
+) -> (Option<actix_web::dev::Server>, Vec<String>) {
+    let mut bind_errors = Vec::new();
+
+    // Create the necessary parameters for the server factory
+    let registry_clone = registry.clone();
+    let telemetry_endpoint_clone = telemetry_endpoint.clone();
+    let api_endpoint_clone = api_endpoint.clone();
+
+    // Create a new server with a factory that uses the create_server_app
+    // function
+    let server = HttpServer::new(move || {
+        create_server_app(
+            registry_clone.clone(),
+            &telemetry_endpoint_clone,
+            &api_endpoint_clone,
+        )
+    })
+    .shutdown_timeout(0)
+    .backlog(1024);
+
+    let bound_server = if binding_addresses.len() == 1 {
+        // Single address binding is simple.
+        match server.bind(&binding_addresses[0]) {
+            Ok(server) => {
+                eprintln!(
+                    "Successfully bound to endpoint: {}",
+                    binding_addresses[0]
+                );
+                Some(server.run())
+            }
+            Err(e) => {
+                let error_msg = format!(
+                    "Failed to bind to address {}: {:?}",
+                    binding_addresses[0], e
+                );
+                eprintln!("{}", error_msg);
+                bind_errors.push(error_msg);
+                None
+            }
+        }
+    } else if binding_addresses.len() == 2 {
+        // For two addresses, try binding to both.
+        let result = server.bind(&binding_addresses[0]).and_then(|server| {
+            eprintln!(
+                "Successfully bound to endpoint: {}",
+                binding_addresses[0]
+            );
+            // Try binding to second address.
+            server.bind(&binding_addresses[1])
+        });
+
+        match result {
+            Ok(server) => {
+                // Successfully bound to both addresses.
+                eprintln!(
+                    "Successfully bound to endpoint: {}",
+                    binding_addresses[1]
+                );
+                Some(server.run())
+            }
+            Err(e) => {
+                // Failed to bind to at least one address.
+                let error_msg = format!("Failed to bind to addresses: {:?}", e);
+                eprintln!("{}", error_msg);
+                bind_errors.push(error_msg);
+                None
+            }
+        }
+    } else {
+        None
+    };
+
+    (bound_server, bind_errors)
+}
+
 /// Creates an HTTP server with retry mechanism if binding fails.
 ///
 /// This function attempts to bind an HTTP server to the specified endpoints.
@@ -84,196 +298,31 @@ fn create_service_hub_server_with_retry(
         SERVICE_HUB_SERVER_BIND_RETRY_INTERVAL_SECS,
     );
 
+    // Get addresses to bind to.
+    let binding_addresses =
+        determine_binding_addresses(&telemetry_endpoint, &api_endpoint);
+
     // Try to create and bind the HTTP server, with retries if it fails.
     loop {
-        // Determine if both endpoints are available and if they are different.
-        let has_both_endpoints =
-            telemetry_endpoint.is_some() && api_endpoint.is_some();
-        let same_endpoint =
-            has_both_endpoints && telemetry_endpoint == api_endpoint;
-
-        // Get addresses to bind to.
-        let binding_addresses = if has_both_endpoints && !same_endpoint {
-            // Both endpoints are different, bind to both.
-            vec![
-                telemetry_endpoint.as_ref().cloned(),
-                api_endpoint.as_ref().cloned(),
-            ]
-            .into_iter()
-            .flatten()
-            .collect::<Vec<_>>()
-        } else if same_endpoint {
-            // Both endpoints are the same, bind to just one.
-            telemetry_endpoint
-                .as_ref()
-                .map(|e| vec![e.clone()])
-                .unwrap_or_default()
-        } else if telemetry_endpoint.is_some() {
-            // Only telemetry endpoint.
-            telemetry_endpoint
-                .as_ref()
-                .map(|e| vec![e.clone()])
-                .unwrap_or_default()
-        } else {
-            // Only API endpoint.
-            api_endpoint.as_ref().map(|e| vec![e.clone()]).unwrap_or_default()
-        };
-
         // Log the addresses we're binding to.
         eprintln!("Attempting to bind to: {:?}", binding_addresses);
 
-        // Create a server factory function that will be used to create the HTTP
+        // Try to bind to all addresses using the extracted function
+        let (bound_server, bind_errors) = create_server_and_bind_to_addresses(
+            &binding_addresses,
+            registry.clone(),
+            telemetry_endpoint.clone(),
+            api_endpoint.clone(),
+        );
+
+        // If we've successfully bound to the specified addresses, return the
         // server.
-        let registry_clone = registry.clone();
-        let telemetry_endpoint_clone = telemetry_endpoint.clone();
-        let api_endpoint_clone = api_endpoint.clone();
-
-        let server_factory = move || {
-            let registry_clone = registry_clone.clone();
-            let has_both = telemetry_endpoint_clone.is_some()
-                && api_endpoint_clone.is_some();
-            let same_ep =
-                has_both && telemetry_endpoint_clone == api_endpoint_clone;
-
-            let app_builder = App::new();
-
-            if has_both && !same_ep {
-                // Both endpoints are provided and they are different.
-                // We need to use guards to ensure the right routes are bound to
-                // the right endpoints.
-                let telemetry_port = telemetry_endpoint_clone
-                    .as_ref()
-                    .and_then(|s| s.rsplit(':').next().map(|p| p.to_string()));
-
-                let api_port = api_endpoint_clone
-                    .as_ref()
-                    .and_then(|s| s.rsplit(':').next().map(|p| p.to_string()));
-
-                app_builder
-                    // Add telemetry routes with guard.
-                    .service(
-                        web::scope("")
-                            .guard(actix_web::guard::fn_guard(move |ctx| {
-                                if let Some(port) = &telemetry_port {
-                                    // Get the host/port info from the request.
-                                    let host = ctx
-                                        .head()
-                                        .uri
-                                        .authority()
-                                        .map(|auth| auth.as_str())
-                                        .unwrap_or("");
-
-                                    // Check if the port matches.
-                                    host.rsplit(':')
-                                        .next()
-                                        .map(|p| p == port)
-                                        .unwrap_or(false)
-                                } else {
-                                    false
-                                }
-                            }))
-                            .configure(|cfg| {
-                                configure_routes(
-                                    cfg,
-                                    registry_clone.clone(),
-                                    true,
-                                    false,
-                                )
-                            }),
-                    )
-                    // Add API routes with guard.
-                    .service(
-                        web::scope("")
-                            .guard(actix_web::guard::fn_guard(move |ctx| {
-                                if let Some(port) = &api_port {
-                                    // Get the host/port info from the request.
-                                    let host = ctx
-                                        .head()
-                                        .uri
-                                        .authority()
-                                        .map(|auth| auth.as_str())
-                                        .unwrap_or("");
-
-                                    // Check if the port matches.
-                                    host.rsplit(':')
-                                        .next()
-                                        .map(|p| p == port)
-                                        .unwrap_or(false)
-                                } else {
-                                    false
-                                }
-                            }))
-                            .configure(|cfg| {
-                                configure_routes(
-                                    cfg,
-                                    registry_clone.clone(),
-                                    false,
-                                    true,
-                                )
-                            }),
-                    )
-            } else {
-                // Either single endpoint or both endpoints are the same.
-                // Configure all relevant routes for the endpoint(s).
-                let is_telemetry = telemetry_endpoint_clone.is_some();
-                let is_api = api_endpoint_clone.is_some();
-
-                app_builder.configure(|cfg| {
-                    configure_routes(
-                        cfg,
-                        registry_clone.clone(),
-                        is_telemetry,
-                        is_api,
-                    )
-                })
-            }
-        };
-
-        // Try to bind to all needed addresses
-        let mut bound_server = None;
-        let mut bind_errors = Vec::new();
-
-        // Create a new server for each binding attempt to avoid ownership
-        // issues
-        for addr in &binding_addresses {
-            // Create a fresh server for each binding attempt
-            let fresh_server = HttpServer::new(server_factory.clone())
-                .shutdown_timeout(0)
-                .backlog(1024);
-
-            match fresh_server.bind(addr) {
-                Ok(server) => {
-                    eprintln!("Successfully bound to endpoint: {}", addr);
-                    // If this is our first successful binding, use it
-                    if bound_server.is_none() {
-                        bound_server = Some(server);
-                    } else {
-                        // We already have a bound server, but we successfully
-                        // bound to another address This
-                        // is unexpected in our current implementation, but
-                        // we'll log it
-                        eprintln!(
-                            "Note: Successfully bound to multiple addresses, \
-                             using the first one"
-                        );
-                    }
-                }
-                Err(e) => {
-                    let error_msg =
-                        format!("Failed to bind to address {}: {:?}", addr, e);
-                    eprintln!("{}", error_msg);
-                    bind_errors.push(error_msg);
-                }
-            }
-        }
-
-        // If we got a server, return it
-        if let Some(server) = bound_server.take() {
-            return Some(server.run());
+        if bound_server.is_some() {
+            return bound_server;
         }
 
         // If we've reached the maximum number of attempts, log the error and
-        // return None
+        // return None.
         attempts += 1;
         if attempts >= max_attempts {
             eprintln!(
@@ -282,7 +331,7 @@ fn create_service_hub_server_with_retry(
                 binding_addresses, attempts, bind_errors
             );
 
-            // Provide a helpful message for common issues
+            // Provide a helpful message for common issues.
             eprintln!(
                 "Check if another process is using these ports or if you have \
                  permission to bind to these addresses."
@@ -291,7 +340,7 @@ fn create_service_hub_server_with_retry(
             return None;
         }
 
-        // Otherwise, log the error and retry after a delay
+        // Otherwise, log the error and retry after a delay.
         eprintln!(
             "Failed to bind to endpoints. Attempt {} of {}. Retrying in {} \
              second{}...",
