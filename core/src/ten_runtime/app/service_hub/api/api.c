@@ -9,10 +9,13 @@
 
 #include <stddef.h>
 
-#include "core/include_internal/ten_runtime/common/version.h"
+#include "include_internal/ten_runtime/common/version.h"
+#include "include_internal/ten_utils/log/log.h"
 
 const char *ten_get_runtime_version(void) { return TEN_RUNTIME_VERSION; }
 
-const char *ten_get_global_log_path(void) { return NULL; }
+const char *ten_get_global_log_path(void) {
+  return ten_log_global_get_output_file_path();
+}
 
 #endif

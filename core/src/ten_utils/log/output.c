@@ -102,7 +102,7 @@ static bool create_directories(const char *path) {
   return true;
 }
 
-static void ten_log_output_set(ten_log_t *self,
+static void ten_log_output_set(ten_log_t *self, TEN_LOG_OUTPUT_TYPE type,
                                const ten_log_output_on_output_func_t output_cb,
                                const ten_log_output_on_close_func_t close_cb,
                                const ten_log_output_on_reload_func_t reload_cb,
@@ -120,16 +120,22 @@ static void ten_log_output_set(ten_log_t *self,
     self->output.on_deinit(self);
   }
 
-  self->output.user_data = user_data;
   self->output.on_output = output_cb;
   self->output.on_close = close_cb;
   self->output.on_reload = reload_cb;
   self->output.on_deinit = deinit_cb;
+
+  self->output.type = type;
+  self->output.user_data = user_data;
 }
 
 static void ten_log_close_file(ten_log_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_log_check_integrity(self), "Invalid argument.");
+
+  if (self->output.type != TEN_LOG_OUTPUT_TYPE_FILE) {
+    return;
+  }
 
   ten_log_output_to_file_ctx_t *ctx =
       (ten_log_output_to_file_ctx_t *)self->output.user_data;
@@ -221,16 +227,22 @@ void ten_log_output_to_file_ctx_destroy(ten_log_output_to_file_ctx_t *ctx) {
 void ten_log_output_init(ten_log_output_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
 
-  self->user_data = NULL;
   self->on_output = NULL;
   self->on_close = NULL;
   self->on_reload = NULL;
   self->on_deinit = NULL;
+
+  self->user_data = NULL;
+  self->type = TEN_LOG_OUTPUT_TYPE_INVALID;
 }
 
 void ten_log_output_to_file(ten_log_t *self, ten_string_t *msg) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(msg, "Invalid argument.");
+
+  if (self->output.type != TEN_LOG_OUTPUT_TYPE_FILE) {
+    return;
+  }
 
   ten_log_output_to_file_ctx_t *ctx =
       (ten_log_output_to_file_ctx_t *)self->output.user_data;
@@ -284,6 +296,10 @@ static void ten_log_output_to_file_deinit(ten_log_t *self) {
   TEN_ASSERT(self->output.on_output == ten_log_output_to_file,
              "Invalid argument.");
 
+  if (self->output.type != TEN_LOG_OUTPUT_TYPE_FILE) {
+    return;
+  }
+
   ten_log_output_to_file_ctx_t *ctx =
       (ten_log_output_to_file_ctx_t *)self->output.user_data;
   TEN_ASSERT(ctx, "Invalid argument.");
@@ -294,6 +310,10 @@ static void ten_log_output_to_file_deinit(ten_log_t *self) {
 static void ten_log_output_to_file_reload(ten_log_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
   TEN_ASSERT(ten_log_check_integrity(self), "Invalid argument.");
+
+  if (self->output.type != TEN_LOG_OUTPUT_TYPE_FILE) {
+    return;
+  }
 
   ten_log_output_to_file_ctx_t *ctx =
       (ten_log_output_to_file_ctx_t *)self->output.user_data;
@@ -316,11 +336,30 @@ void ten_log_set_output_to_file(ten_log_t *self, const char *log_path) {
       ten_log_output_to_file_ctx_create(fd, log_path);
   TEN_ASSERT(ctx, "Failed to allocate memory.");
 
-  ten_log_output_set(self, ten_log_output_to_file, ten_log_close_file,
-                     ten_log_output_to_file_reload,
+  ten_log_output_set(self, TEN_LOG_OUTPUT_TYPE_FILE, ten_log_output_to_file,
+                     ten_log_close_file, ten_log_output_to_file_reload,
                      ten_log_output_to_file_deinit, ctx);
 
   ten_log_set_formatter(self, ten_log_default_formatter, NULL);
+}
+
+const char *ten_log_get_output_file_path(ten_log_t *self) {
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_log_check_integrity(self), "Invalid argument.");
+
+  if (self->output.type != TEN_LOG_OUTPUT_TYPE_FILE) {
+    return NULL;
+  }
+
+  ten_log_output_to_file_ctx_t *ctx =
+      (ten_log_output_to_file_ctx_t *)self->output.user_data;
+  TEN_ASSERT(ctx, "Invalid argument.");
+
+  ten_mutex_lock(ctx->mutex);
+  const char *path = ten_string_get_raw_str(&ctx->log_path);
+  ten_mutex_unlock(ctx->mutex);
+
+  return path;
 }
 
 void ten_log_output_to_stderr(ten_log_t *self, ten_string_t *msg) {
@@ -349,7 +388,8 @@ void ten_log_output_to_stderr(ten_log_t *self, ten_string_t *msg) {
 }
 
 void ten_log_set_output_to_stderr(ten_log_t *self) {
-  ten_log_output_set(self, ten_log_output_to_stderr, NULL, NULL, NULL, NULL);
+  ten_log_output_set(self, TEN_LOG_OUTPUT_TYPE_STDERR, ten_log_output_to_stderr,
+                     NULL, NULL, NULL, NULL);
 
   ten_log_formatter_on_format_func_t formatter_func = NULL;
 

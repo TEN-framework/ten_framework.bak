@@ -19,9 +19,6 @@ use futures::future::select;
 use futures::FutureExt;
 use prometheus::Registry;
 
-// Import ten_app_t from the bindings
-use self::bindings::ten_app_t;
-
 use crate::constants::{
     SERVICE_HUB_SERVER_BIND_MAX_RETRIES,
     SERVICE_HUB_SERVER_BIND_RETRY_INTERVAL_SECS,
@@ -48,7 +45,6 @@ fn configure_routes(
     registry: Registry,
     is_telemetry_endpoint: bool,
     is_api_endpoint: bool,
-    app: *mut ten_app_t,
 ) {
     if is_telemetry_endpoint {
         // Configure telemetry endpoint.
@@ -57,7 +53,7 @@ fn configure_routes(
 
     if is_api_endpoint {
         // Configure API endpoints.
-        api::configure_api_route(cfg, app);
+        api::configure_api_route(cfg);
     }
 }
 
@@ -100,7 +96,6 @@ fn create_server_app(
     registry: Registry,
     telemetry_endpoint: &Option<String>,
     api_endpoint: &Option<String>,
-    app: *mut ten_app_t,
 ) -> App<
     impl actix_web::dev::ServiceFactory<
         actix_web::dev::ServiceRequest,
@@ -150,13 +145,7 @@ fn create_server_app(
                         }
                     }))
                     .configure(|cfg| {
-                        configure_routes(
-                            cfg,
-                            registry.clone(),
-                            true,
-                            false,
-                            app,
-                        )
+                        configure_routes(cfg, registry.clone(), true, false)
                     }),
             )
             // Add API routes with guard.
@@ -182,13 +171,7 @@ fn create_server_app(
                         }
                     }))
                     .configure(|cfg| {
-                        configure_routes(
-                            cfg,
-                            registry.clone(),
-                            false,
-                            true,
-                            app,
-                        )
+                        configure_routes(cfg, registry.clone(), false, true)
                     }),
             )
     } else {
@@ -198,7 +181,7 @@ fn create_server_app(
         let is_api = api_endpoint.is_some();
 
         app_builder.configure(|cfg| {
-            configure_routes(cfg, registry.clone(), is_telemetry, is_api, app)
+            configure_routes(cfg, registry.clone(), is_telemetry, is_api)
         })
     }
 }
@@ -213,7 +196,6 @@ fn create_server_and_bind_to_addresses(
     registry: Registry,
     telemetry_endpoint: &Option<String>,
     api_endpoint: &Option<String>,
-    app: *mut ten_app_t,
 ) -> (Option<actix_web::dev::Server>, Vec<String>) {
     let mut bind_errors = Vec::new();
 
@@ -222,20 +204,13 @@ fn create_server_and_bind_to_addresses(
     let telemetry_endpoint_clone = telemetry_endpoint.clone();
     let api_endpoint_clone = api_endpoint.clone();
 
-    // Convert the pointer to usize which is Send.
-    let app_addr = app as usize;
-
     // Create a new server with a factory that uses the create_server_app
     // function
     let server = HttpServer::new(move || {
-        // Convert back to pointer inside the closure.
-        let app_ptr = app_addr as *mut ten_app_t;
-
         create_server_app(
             registry_clone.clone(),
             &telemetry_endpoint_clone,
             &api_endpoint_clone,
-            app_ptr,
         )
     })
     .shutdown_timeout(0)
@@ -312,7 +287,6 @@ fn create_service_hub_server_with_retry(
     telemetry_endpoint: &Option<String>,
     api_endpoint: &Option<String>,
     registry: Registry,
-    app: *mut ten_app_t,
 ) -> Option<actix_web::dev::Server> {
     // If both endpoints are None, return None early.
     if telemetry_endpoint.is_none() && api_endpoint.is_none() {
@@ -330,7 +304,6 @@ fn create_service_hub_server_with_retry(
             registry.clone(),
             telemetry_endpoint,
             api_endpoint,
-            app,
         );
 
         // If we've successfully bound to the specified addresses, return the
@@ -469,7 +442,6 @@ pub unsafe extern "C" fn ten_service_hub_create(
     telemetry_port: u32,
     api_host: *const c_char,
     api_port: u32,
-    app: *mut ten_app_t,
 ) -> *mut ServiceHub {
     // Check if both hosts are NULL, if so, return null.
     if telemetry_host.is_null() && api_host.is_null() {
@@ -521,7 +493,6 @@ pub unsafe extern "C" fn ten_service_hub_create(
                 &telemetry_endpoint,
                 &api_endpoint,
                 registry_clone,
-                app,
             ) {
                 Some(server) => server,
                 None => {
@@ -553,7 +524,6 @@ pub unsafe extern "C" fn ten_service_hub_create(
                 &telemetry_endpoint,
                 &api_endpoint,
                 registry_clone,
-                app,
             ) {
                 Some(server) => server,
                 None => {
@@ -589,7 +559,6 @@ pub unsafe extern "C" fn ten_service_hub_create(
             &telemetry_endpoint,
             &None,
             registry_clone,
-            app,
         ) {
             Some(server) => server,
             None => {
@@ -620,7 +589,6 @@ pub unsafe extern "C" fn ten_service_hub_create(
             &None,
             &api_endpoint,
             registry_clone,
-            app,
         ) {
             Some(server) => server,
             None => {

@@ -86,6 +86,9 @@
                           __LINE__, __VA_ARGS__);                       \
   } while (0)
 
+typedef struct ten_string_t ten_string_t;
+typedef struct ten_log_t ten_log_t;
+
 typedef enum TEN_LOG_LEVEL {
   TEN_LOG_LEVEL_INVALID,
 
@@ -97,8 +100,12 @@ typedef enum TEN_LOG_LEVEL {
   TEN_LOG_LEVEL_FATAL,
 } TEN_LOG_LEVEL;
 
-typedef struct ten_string_t ten_string_t;
-typedef struct ten_log_t ten_log_t;
+typedef enum TEN_LOG_OUTPUT_TYPE {
+  TEN_LOG_OUTPUT_TYPE_INVALID,
+
+  TEN_LOG_OUTPUT_TYPE_FILE,
+  TEN_LOG_OUTPUT_TYPE_STDERR,
+} TEN_LOG_OUTPUT_TYPE;
 
 typedef void (*ten_log_output_on_output_func_t)(ten_log_t *self,
                                                 ten_string_t *msg);
@@ -121,6 +128,8 @@ typedef struct ten_log_output_t {
   ten_log_output_on_close_func_t on_close;
   ten_log_output_on_reload_func_t on_reload;
   ten_log_output_on_deinit_func_t on_deinit;
+
+  TEN_LOG_OUTPUT_TYPE type;
   void *user_data;
 } ten_log_output_t;
 

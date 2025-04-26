@@ -142,6 +142,7 @@ pub async fn execute_cmd(
         Some(command_data.pkg_type),
         Some(command_data.pkg_name.clone()),
         Some(command_data.version_req.clone()),
+        None, // No tag filtering.
         None,
         None, // Retrieve all packages.
         &out,

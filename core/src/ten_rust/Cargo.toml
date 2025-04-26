@@ -42,8 +42,9 @@ tempfile = { version = "3.10" }
 uuid = { version = "1.16.0", features = ["serde", "v4"] }
 
 [build-dependencies]
-bindgen = { version = "0.70" }
+bindgen = { version = "0.70", optional = true }
 
 [features]
 default = ["service-hub"]
 service-hub = []
+deprecated = ["bindgen"]

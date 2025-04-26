@@ -260,6 +260,7 @@ fn find_file_with_criteria(
     pkg_type: Option<PkgType>,
     name: Option<&String>,
     version_req: Option<&VersionReq>,
+    tags: Option<&Vec<String>>,
 ) -> Result<Vec<PkgRegistryInfo>> {
     let mut results = Vec::<PkgRegistryInfo>::new();
 
@@ -271,7 +272,7 @@ fn find_file_with_criteria(
             let search_path = base_url.join(pkg_type.to_string());
             if search_path.exists() {
                 let mut path_results =
-                    search_versions(&search_path, name_str, version_req)?;
+                    search_versions(&search_path, name_str, version_req, tags)?;
                 results.append(&mut path_results);
             }
         }
@@ -287,6 +288,7 @@ fn find_file_with_criteria(
                             &search_path,
                             &name_str,
                             version_req,
+                            tags,
                         )?;
                         results.append(&mut name_results);
                     }
@@ -300,8 +302,12 @@ fn find_file_with_criteria(
                     let type_dir = entry.path();
                     let name_dir = type_dir.join(name);
                     if name_dir.exists() {
-                        let mut type_results =
-                            search_versions(&type_dir, name, version_req)?;
+                        let mut type_results = search_versions(
+                            &type_dir,
+                            name,
+                            version_req,
+                            tags,
+                        )?;
                         results.append(&mut type_results);
                     }
                 }
@@ -323,6 +329,7 @@ fn find_file_with_criteria(
                                     .to_string_lossy()
                                     .as_ref(),
                                 version_req,
+                                tags,
                             )?;
                             results.append(&mut name_results);
                         }
@@ -340,6 +347,7 @@ fn search_versions(
     base_dir: &Path,
     name: &str,
     version_req: Option<&VersionReq>,
+    tags: Option<&Vec<String>>,
 ) -> Result<Vec<PkgRegistryInfo>> {
     let mut results = Vec::<PkgRegistryInfo>::new();
     let target_path = base_dir.join(name);
@@ -402,6 +410,30 @@ fn search_versions(
                             let manifest =
                                 Manifest::from_str(&manifest_content)?;
 
+                            // Check if the manifest meets the tags
+                            // requirements.
+                            if let Some(tag_filters) = tags {
+                                if !tag_filters.is_empty() {
+                                    // If manifest has no tags, skip this
+                                    // package.
+                                    if manifest.tags.is_none() {
+                                        continue;
+                                    }
+
+                                    // If manifest has tags, check if it
+                                    // contains all the required tags.
+                                    let manifest_tags =
+                                        manifest.tags.as_ref().unwrap();
+                                    let all_tags_contained = tag_filters
+                                        .iter()
+                                        .all(|tag| manifest_tags.contains(tag));
+
+                                    if !all_tags_contained {
+                                        continue;
+                                    }
+                                }
+                            }
+
                             // Generate the download URL from the file path.
                             let download_url = url::Url::from_file_path(path)
                                 .map_err(|_| {
@@ -438,6 +470,7 @@ pub async fn get_package_list(
     pkg_type: Option<PkgType>,
     name: Option<String>,
     version_req: Option<VersionReq>,
+    tags: Option<Vec<String>>,
     page_size: Option<u32>,
     page: Option<u32>,
     _out: &Arc<Box<dyn TmanOutput>>,
@@ -465,6 +498,7 @@ pub async fn get_package_list(
         pkg_type,
         name_ref,
         version_req_ref,
+        tags.as_ref(),
     )?;
 
     // If page is specified, paginate the results.

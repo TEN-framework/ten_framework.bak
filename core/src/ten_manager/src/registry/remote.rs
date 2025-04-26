@@ -622,6 +622,7 @@ struct RegistryPackagesData {
 ///   extension).
 /// * `name` - Optional name of the package to search for.
 /// * `version_req` - Optional version requirement to filter packages.
+/// * `tags` - Optional tags to filter packages.
 /// * `page_size` - Optional page size for pagination.
 /// * `page` - Optional page number for pagination.
 /// * `out` - Output interface for logging.
@@ -642,6 +643,7 @@ pub async fn get_package_list(
     pkg_type: Option<PkgType>,
     name: Option<String>,
     version_req: Option<VersionReq>,
+    tags: Option<Vec<String>>,
     page_size: Option<u32>,
     page: Option<u32>,
     out: &Arc<Box<dyn TmanOutput>>,
@@ -663,6 +665,7 @@ pub async fn get_package_list(
             let out = out.clone();
             let version_req = version_req.clone();
             let name = name.clone();
+            let tags = tags.clone();
             let tman_config = tman_config.clone();
 
             Box::pin(async move {
@@ -698,6 +701,13 @@ pub async fn get_package_list(
                             query.append_pair("version", &vr.to_string());
                         }
 
+                        // Add tags parameter if provided.
+                        if let Some(t) = &tags {
+                            if !t.is_empty() {
+                                query.append_pair("tags", &t.join(","));
+                            }
+                        }
+
                         // Pagination parameters.
                         query
                             .append_pair(
@@ -709,7 +719,7 @@ pub async fn get_package_list(
 
                     if is_verbose(tman_config.clone()).await {
                         let query_info = format!(
-                            "{}{}{}",
+                            "{}{}{}{}",
                             pkg_type.as_ref().map_or(
                                 "".to_string(),
                                 |pt| format!("type={} ", pt)
@@ -720,8 +730,15 @@ pub async fn get_package_list(
                             )),
                             version_req.as_ref().map_or(
                                 "".to_string(),
-                                |vr| format!("version={}", vr)
-                            )
+                                |vr| format!("version={} ", vr)
+                            ),
+                            tags.as_ref().map_or("".to_string(), |t| {
+                                if t.is_empty() {
+                                    "".to_string()
+                                } else {
+                                    format!("tags={}", t.join(","))
+                                }
+                            })
                         );
 
                         out.normal_line(&format!(

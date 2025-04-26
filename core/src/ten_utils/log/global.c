@@ -30,6 +30,10 @@ void ten_log_global_set_output_to_file(const char *log_path) {
   ten_log_set_output_to_file(&ten_global_log, log_path);
 }
 
+const char *ten_log_global_get_output_file_path(void) {
+  return ten_log_get_output_file_path(&ten_global_log);
+}
+
 void ten_log_global_set_encrypt_cb(ten_log_encrypt_on_encrypt_func_t cb,
                                    void *cb_data) {
   ten_log_set_encrypt_cb(&ten_global_log, cb, cb_data);

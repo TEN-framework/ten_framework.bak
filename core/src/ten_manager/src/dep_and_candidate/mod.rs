@@ -201,6 +201,7 @@ async fn process_non_local_dependency_to_get_candidate(
         // design, this is the best we can do for now. The answer won't be
         // wrong, but the efficiency might be somewhat lower.
         Some(version_req.clone()),
+        None, // No tag filtering.
         None,
         None, // Retrieve all packages.
         out,
