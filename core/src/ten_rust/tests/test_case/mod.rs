@@ -11,3 +11,6 @@ mod interface;
 mod json_schema;
 mod pkg_info;
 mod schema;
+
+// Include mock implementations for external functions.
+mod test_mock;

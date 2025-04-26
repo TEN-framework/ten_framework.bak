@@ -5,6 +5,7 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 mod api;
+mod bindings;
 mod telemetry;
 
 use std::os::raw::c_char;

@@ -4,10 +4,10 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-#if defined(TEN_ENABLE_TEN_RUST_APIS)
+use std::os::raw::c_char;
 
-#include "core/include_internal/ten_runtime/common/version.h"
-
-const char *ten_get_runtime_version(void) { return TEN_RUNTIME_VERSION; }
-
-#endif
+/// Mock implementation of ten_get_runtime_version for tests.
+#[no_mangle]
+pub extern "C" fn ten_get_runtime_version() -> *const c_char {
+    "1.0.0".as_ptr() as *const c_char
+}

@@ -4,10 +4,8 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-#if defined(TEN_ENABLE_TEN_RUST_APIS)
+#pragma once
 
-#include "core/include_internal/ten_runtime/common/version.h"
+#include "ten_runtime/ten_config.h"
 
-const char *ten_get_runtime_version(void) { return TEN_RUNTIME_VERSION; }
-
-#endif
+TEN_RUNTIME_API const char *ten_get_runtime_version(void);

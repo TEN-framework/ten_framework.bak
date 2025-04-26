@@ -16,6 +16,8 @@ pub mod interface;
 pub mod json;
 pub mod json_schema;
 pub mod pkg_info;
+
+#[cfg(feature = "service-hub")]
 pub mod service_hub;
 
 // In the schema/ folder, the Rust API is mainly automatically generated from C
