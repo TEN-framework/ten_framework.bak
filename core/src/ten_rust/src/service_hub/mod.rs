@@ -221,16 +221,21 @@ fn create_server_and_bind_to_addresses(
     let registry_clone = registry.clone();
     let telemetry_endpoint_clone = telemetry_endpoint.clone();
     let api_endpoint_clone = api_endpoint.clone();
-    let app_clone = app;
+
+    // Convert the pointer to usize which is Send.
+    let app_addr = app as usize;
 
     // Create a new server with a factory that uses the create_server_app
     // function
     let server = HttpServer::new(move || {
+        // Convert back to pointer inside the closure.
+        let app_ptr = app_addr as *mut ten_app_t;
+
         create_server_app(
             registry_clone.clone(),
             &telemetry_endpoint_clone,
             &api_endpoint_clone,
-            app_clone,
+            app_ptr,
         )
     })
     .shutdown_timeout(0)

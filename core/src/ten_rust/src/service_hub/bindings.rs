@@ -12,11 +12,11 @@ pub struct ten_app_t {
     _unused: [u8; 0],
 }
 
-unsafe impl std::marker::Send for ten_app_t {}
-
 extern "C" {
+    #[allow(dead_code)]
     pub fn ten_get_runtime_version() -> *const ::std::os::raw::c_char;
 
+    #[allow(dead_code)]
     pub fn ten_get_global_log_path(
         app: *mut ten_app_t,
     ) -> *const ::std::os::raw::c_char;
