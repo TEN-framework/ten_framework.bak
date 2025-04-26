@@ -6,7 +6,6 @@ line_length = 80
 sys_includes = [
   "include_internal/ten_rust/ten_config.h",
   "include_internal/ten_utils/schema/bindings/rust/schema_proxy.h",
-  "include_internal/ten_utils/value/bindings/rust/value_proxy.h",
 ]
 
 [fn]
