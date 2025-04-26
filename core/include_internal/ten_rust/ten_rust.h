@@ -18,6 +18,10 @@ typedef struct MetricHandle MetricHandle;
 typedef struct ServiceHub ServiceHub;
 typedef struct ten_app_t ten_app_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 TEN_RUST_API void ten_rust_free_cstring(const char *ptr);
 
 TEN_RUST_API Cipher *ten_cipher_create(const char *algorithm,
@@ -95,3 +99,7 @@ TEN_RUST_API void ten_metric_gauge_add(MetricHandle *metric_ptr, double value,
 TEN_RUST_API void ten_metric_gauge_sub(MetricHandle *metric_ptr, double value,
                                        const char *const *label_values_ptr,
                                        uintptr_t label_values_len);
+
+#ifdef __cplusplus
+}
+#endif
