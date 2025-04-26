@@ -4,13 +4,10 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-mod crypto_test;
-mod graph;
-mod graph_check;
-mod interface;
-mod json_schema;
-mod pkg_info;
-mod schema;
+#pragma once
 
-// Include mock implementations for external functions.
-mod test_mock;
+#include "ten_runtime/ten_config.h"
+
+TEN_RUNTIME_API const char *ten_get_runtime_version(void);
+
+TEN_RUNTIME_API const char *ten_get_global_log_path(void);

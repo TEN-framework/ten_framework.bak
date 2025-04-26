@@ -80,22 +80,35 @@ if (ten_enable_ten_rust) {
     deps = [ ":ten_rust_build_deps" ]
   }
 
-  rust_cbindgen("ten_rust_binding") {
-    project_path = "//core/src/ten_rust"
-    config_file = "cbindgen.toml"
-    output_file = "include_internal/ten_rust/ten_rust.h"
-    binding_files = [
-      "src/bindings.rs",
-      "src/service_hub/mod.rs",
-    ]
+  if (teb_rust_enable_cbindgen) {
+    config("ten_rust_config_for_enable_cbindgen") {
+      include_dirs = [ "${target_gen_dir}" ]
+    }
 
-    deps = [ ":ten_rust_static_lib" ]
-    public_configs = [ ":ten_rust_config" ]
+    rust_cbindgen("ten_rust_binding") {
+      project_path = "//core/src/ten_rust"
+      config_file = "cbindgen.toml"
+      output_file = "include_internal/ten_rust/ten_rust.h"
+      binding_files = [
+        "src/bindings.rs",
+        "src/service_hub/mod.rs",
+      ]
+
+      deps = [ ":ten_rust_static_lib" ]
+      public_configs = [
+        ":ten_rust_config",
+        ":ten_rust_config_for_enable_cbindgen",
+      ]
+    }
+  } else {
+    group("ten_rust_binding") {
+      deps = [ ":ten_rust_static_lib" ]
+      public_configs = [ ":ten_rust_config" ]
+    }
   }
 
   config("ten_rust_config") {
     libs = get_target_outputs(":ten_rust_static_lib")
-    include_dirs = [ "${target_gen_dir}" ]
   }
 
   group("ten_rust_build_deps") {

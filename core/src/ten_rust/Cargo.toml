@@ -43,3 +43,7 @@ uuid = { version = "1.16.0", features = ["serde", "v4"] }
 
 [build-dependencies]
 bindgen = { version = "0.70" }
+
+[features]
+default = ["service-hub"]
+service-hub = []
