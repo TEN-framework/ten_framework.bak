@@ -20,8 +20,8 @@ typedef struct ten_app_t ten_app_t;
 
 TEN_RUST_PRIVATE_API void ten_rust_free_cstring(const char *ptr);
 
-TEN_RUST_PRIVATE_API Cipher *ten_cipher_create(const char *algorithm,
-                                               const char *params);
+TEN_RUST_API Cipher *ten_cipher_create(const char *algorithm,
+                                       const char *params);
 
 TEN_RUST_PRIVATE_API void ten_cipher_destroy(Cipher *cipher_ptr);
 

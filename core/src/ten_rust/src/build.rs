@@ -7,7 +7,7 @@
 use std::{env, path::PathBuf};
 
 #[allow(dead_code)]
-mod for_reference {
+mod archive {
     use std::{env, fs, path::Path, process::id, thread, time::Duration};
 
     fn auto_gen_schema_bindings_from_c() {
