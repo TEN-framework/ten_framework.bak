@@ -15,8 +15,6 @@ ten_runtime_glob("extension_thread") {
   ]
 
   if (ten_enable_ten_rust && ten_enable_ten_rust_apis) {
-    if (teb_rust_enable_cbindgen) {
-      deps += [ "//core/src/ten_rust:ten_rust_binding" ]
-    }
+    deps += [ "//core/src/ten_rust:ten_rust_binding" ]
   }
 }

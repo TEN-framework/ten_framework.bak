@@ -118,9 +118,7 @@ if (ten_enable_ten_rust) {
     public_deps = []
 
     if (ten_enable_ten_rust) {
-      if (teb_rust_enable_cbindgen) {
-        public_deps += [ ":ten_rust_binding" ]
-      }
+      public_deps += [ ":ten_rust_binding" ]
 
       if (ten_rust_enable_tests) {
         deps += [ ":ten_rust_test" ]

@@ -10,8 +10,6 @@ ten_runtime_glob("api") {
   file_list = all_native_files
 
   if (ten_enable_ten_rust && ten_enable_ten_rust_apis) {
-    if (teb_rust_enable_cbindgen) {
-      public_deps = [ "//core/src/ten_rust:ten_rust_binding" ]
-    }
+    public_deps = [ "//core/src/ten_rust:ten_rust_binding" ]
   }
 }
