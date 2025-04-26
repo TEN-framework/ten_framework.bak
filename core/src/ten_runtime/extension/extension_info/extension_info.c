@@ -352,11 +352,6 @@ static ten_shared_ptr_t *ten_extension_info_clone_dest(
     return NULL;
   }
 
-  if (!copy_msg_dest(&exist_extension_info->msg_dest_info.interface,
-                     &self->msg_dest_info.interface, extensions_info, err)) {
-    return NULL;
-  }
-
   return exist_dest;
 }
 

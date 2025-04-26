@@ -195,17 +195,6 @@ ten_shared_ptr_t *ten_extension_info_parse_connection_src_part_from_value(
     }
   }
 
-  // Parse 'interface'.
-  ten_value_t *interface_value =
-      ten_value_object_peek(value, TEN_STR_INTERFACE);
-  if (interface_value) {
-    if (!parse_msg_dest_value(interface_value, extensions_info,
-                              &extension_info->msg_dest_info.interface,
-                              extension_info, err)) {
-      return NULL;
-    }
-  }
-
   return self;
 }
 
@@ -388,7 +377,6 @@ ten_value_t *ten_extension_info_connection_to_value(ten_extension_info_t *self,
       ten_list_is_empty(&self->msg_dest_info.data) &&
       ten_list_is_empty(&self->msg_dest_info.video_frame) &&
       ten_list_is_empty(&self->msg_dest_info.audio_frame) &&
-      ten_list_is_empty(&self->msg_dest_info.interface) &&
       ten_list_is_empty(&self->msg_conversion_contexts)) {
     return NULL;
   }
@@ -412,9 +400,6 @@ ten_value_t *ten_extension_info_connection_to_value(ten_extension_info_t *self,
   //     ...
   //   ],
   //   "audio_frame": [
-  //     ...
-  //   ],
-  //   "interface": [
   //     ...
   //   ]
   // }
@@ -500,19 +485,6 @@ ten_value_t *ten_extension_info_connection_to_value(ten_extension_info_t *self,
     ten_list_push_ptr_back(
         &kv_list,
         ten_value_kv_create(TEN_STR_AUDIO_FRAME, audio_frame_dest_value),
-        (ten_ptr_listnode_destroy_func_t)ten_value_kv_destroy);
-  }
-
-  // Parse 'interface'
-  if (!ten_list_is_empty(&self->msg_dest_info.interface)) {
-    ten_value_t *interface_dest_value =
-        pack_msg_dest(self, &self->msg_dest_info.interface, err);
-    if (!interface_dest_value) {
-      return NULL;
-    }
-
-    ten_list_push_ptr_back(
-        &kv_list, ten_value_kv_create(TEN_STR_INTERFACE, interface_dest_value),
         (ten_ptr_listnode_destroy_func_t)ten_value_kv_destroy);
   }
 

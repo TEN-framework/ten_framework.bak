@@ -26,25 +26,6 @@
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/mark.h"
 
-static bool ten_extension_parse_interface_schema(ten_extension_t *self,
-                                                 ten_value_t *api_definition,
-                                                 ten_error_t *err) {
-  TEN_ASSERT(self && ten_extension_check_integrity(self, true),
-             "Invalid argument.");
-  TEN_ASSERT(api_definition && ten_value_check_integrity(api_definition),
-             "Invalid argument.");
-
-  bool result = ten_schema_store_set_interface_schema_definition(
-      &self->schema_store, api_definition, ten_extension_get_base_dir(self),
-      err);
-  if (!result) {
-    TEN_LOGW("[%s] Failed to set interface schema definition: %s.",
-             ten_extension_get_name(self, true), ten_error_message(err));
-  }
-
-  return result;
-}
-
 static void ten_extension_adjust_and_validate_property_on_configure_done(
     ten_extension_t *self) {
   TEN_ASSERT(self && ten_extension_check_integrity(self, true),
@@ -165,13 +146,8 @@ bool ten_extension_on_configure_done(ten_env_t *self) {
   TEN_ASSERT(rc, "[%s] Failed to handle 'ten' properties.",
              ten_string_get_raw_str(&extension->name));
 
-  ten_value_t *api_definition = ten_metadata_init_schema_store(
-      &extension->manifest, &extension->schema_store);
-  if (api_definition) {
-    bool success =
-        ten_extension_parse_interface_schema(extension, api_definition, &err);
-    TEN_ASSERT(success, "Failed to parse interface schema.");
-  }
+  ten_metadata_init_schema_store(&extension->manifest,
+                                 &extension->schema_store);
 
   ten_extension_adjust_and_validate_property_on_configure_done(extension);
 
@@ -185,13 +161,6 @@ bool ten_extension_on_configure_done(ten_env_t *self) {
       ten_extension_create_timer_for_out_path(extension);
   ten_list_push_ptr_back(&extension->path_timers, out_path_timer, NULL);
   ten_timer_enable(out_path_timer);
-
-  // The interface info has been resolved, and extensions might send msg out
-  // during `on_start()`, so it's the best time to merge the interface info to
-  // the extension_info.
-  rc =
-      ten_extension_determine_and_merge_all_interface_dest_extension(extension);
-  TEN_ASSERT(rc, "Should not happen.");
 
   // Trigger the extension on_init flow.
   rc = ten_runloop_post_task_tail(ten_extension_get_attached_runloop(extension),

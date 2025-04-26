@@ -17,7 +17,6 @@ void ten_all_msg_type_dest_info_init(ten_all_msg_type_dest_info_t *self) {
   ten_list_init(&self->video_frame);
   ten_list_init(&self->audio_frame);
   ten_list_init(&self->data);
-  ten_list_init(&self->interface);
 }
 
 void ten_all_msg_type_dest_info_deinit(ten_all_msg_type_dest_info_t *self) {
@@ -27,7 +26,6 @@ void ten_all_msg_type_dest_info_deinit(ten_all_msg_type_dest_info_t *self) {
   ten_list_clear(&self->video_frame);
   ten_list_clear(&self->audio_frame);
   ten_list_clear(&self->data);
-  ten_list_clear(&self->interface);
 }
 
 static void translate_localhost_to_app_uri_for_msg_dest(ten_shared_ptr_t *dest,

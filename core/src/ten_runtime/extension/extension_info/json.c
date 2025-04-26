@@ -94,7 +94,6 @@ int ten_extension_info_connections_to_json(ten_extension_info_t *self,
       ten_list_is_empty(&self->msg_dest_info.data) &&
       ten_list_is_empty(&self->msg_dest_info.video_frame) &&
       ten_list_is_empty(&self->msg_dest_info.audio_frame) &&
-      ten_list_is_empty(&self->msg_dest_info.interface) &&
       ten_list_is_empty(&self->msg_conversion_contexts)) {
     return 0;
   }
@@ -155,18 +154,6 @@ int ten_extension_info_connections_to_json(ten_extension_info_t *self,
 
     bool success = pack_msg_dest(self, &self->msg_dest_info.audio_frame,
                                  &audio_frame_dest_json, err);
-    if (!success) {
-      return -1;
-    }
-  }
-
-  if (!ten_list_is_empty(&self->msg_dest_info.interface)) {
-    ten_json_t interface_dest_json = TEN_JSON_INIT_VAL(json->ctx, false);
-    ten_json_object_peek_or_create_array(json, TEN_STR_INTERFACE,
-                                         &interface_dest_json);
-
-    bool success = pack_msg_dest(self, &self->msg_dest_info.interface,
-                                 &interface_dest_json, err);
     if (!success) {
       return -1;
     }

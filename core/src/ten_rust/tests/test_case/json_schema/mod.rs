@@ -996,67 +996,6 @@ mod tests {
     }
 
     #[test]
-    fn test_validate_manifest_interface_valid() {
-        let manifest = r#"
-        {
-          "type": "extension",
-          "name": "a",
-          "version": "0.1.0",
-                  "api": {
-            "interface_in": [
-              {
-                "name": "ia",
-                "$ref": "https://a.b.c/d.json"
-              },
-              {
-                "name": "ib",
-                "$ref": "file://c.json"
-              }
-            ],
-            "interface_out": [
-              {
-                "name": "ic",
-                "cmd": [
-                  {
-                    "name": "hello"
-                  }
-                ]
-              }
-            ]
-          }
-        }
-        "#;
-
-        let result = ten_validate_manifest_json_string(manifest);
-        assert!(result.is_ok());
-    }
-
-    #[test]
-    fn test_validate_manifest_interface_invalid_ref() {
-        let manifest = r#"
-        {
-          "type": "extension",
-          "name": "a",
-          "version": "0.1.0",
-                  "api": {
-            "interface_in": [
-              {
-                "name": "ia",
-                "$ref": "ftp://a.b.c/d.json"
-              }
-            ]
-          }
-        }
-        "#;
-
-        let result = ten_validate_manifest_json_string(manifest);
-        assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains(
-            "not valid under any of the schemas listed in the 'oneOf' keyword"
-        ));
-    }
-
-    #[test]
     fn test_validate_property_json_valid() {
         let property = r#"
         {

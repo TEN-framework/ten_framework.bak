@@ -21,15 +21,6 @@ ten_package_test_prepare_app("hello_world_app") {
     "hello_world_app/ten_packages/extension/default_extension_cpp/manifest.json",
     "hello_world_app/ten_packages/extension/default_extension_cpp/property.json",
     "hello_world_app/ten_packages/extension/default_extension_cpp/src/main.cc",
-
-    "hello_world_app/ten_packages/extension/default_extension_cpp/a.json",
-
-    # The above `a.json` will be copied to the source folder, but can not be
-    # copied to the build target directory with the default `BUILD.gn`. The
-    # `a.json` should be added to the `sources` or `resources` in the BUILD.gn
-    # of the extension.
-    #
-    # TODO(Liu): Provide a better way to enable users to extend the `BUILD.gn`.
     "hello_world_app/ten_packages/extension/default_extension_cpp/BUILD.gn",
   ]
 

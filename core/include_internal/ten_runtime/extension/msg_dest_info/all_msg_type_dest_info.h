@@ -17,7 +17,6 @@ typedef struct ten_all_msg_type_dest_info_t {
   ten_list_t data;         // ten_shared_ptr_t of ten_msg_dest_info_t
   ten_list_t video_frame;  // ten_shared_ptr_t of ten_msg_dest_info_t
   ten_list_t audio_frame;  // ten_shared_ptr_t of ten_msg_dest_info_t
-  ten_list_t interface;    // ten_shared_ptr_t of ten_msg_dest_info_t
 } ten_all_msg_type_dest_info_t;
 
 TEN_RUNTIME_PRIVATE_API void ten_all_msg_type_dest_info_init(

@@ -50,12 +50,6 @@ typedef struct ten_schema_store_t {
   ten_hashtable_t video_frame_out;
   ten_hashtable_t audio_frame_in;
   ten_hashtable_t audio_frame_out;
-
-  // Key is the interface name, the type of value is `ten_interface_schema_t`.
-  // Since this is a schema store, the interface_in/out here must be the
-  // interface definitions after expanding the `$ref`.
-  ten_hashtable_t interface_in;
-  ten_hashtable_t interface_out;
 } ten_schema_store_t;
 
 TEN_RUNTIME_PRIVATE_API bool ten_schema_store_check_integrity(
@@ -65,13 +59,6 @@ TEN_RUNTIME_API void ten_schema_store_init(ten_schema_store_t *self);
 
 TEN_RUNTIME_API bool ten_schema_store_set_schema_definition(
     ten_schema_store_t *self, ten_value_t *schema_def, ten_error_t *err);
-
-/**
- * @param schema_def The definition defined in the `api` section.
- */
-TEN_RUNTIME_API bool ten_schema_store_set_interface_schema_definition(
-    ten_schema_store_t *self, ten_value_t *schema_def, const char *base_dir,
-    ten_error_t *err);
 
 TEN_RUNTIME_API void ten_schema_store_deinit(ten_schema_store_t *self);
 
@@ -104,14 +91,3 @@ TEN_RUNTIME_API bool ten_schema_store_adjust_properties(
 TEN_RUNTIME_API ten_msg_schema_t *ten_schema_store_get_msg_schema(
     ten_schema_store_t *self, TEN_MSG_TYPE msg_type, const char *msg_name,
     bool is_msg_out);
-
-/**
- * @brief Retrieve all msg names belonging to the interface.
- *
- * @return Whether the interface is found.
- */
-TEN_RUNTIME_PRIVATE_API bool
-ten_schema_store_get_all_msg_names_in_interface_out(ten_schema_store_t *self,
-                                                    TEN_MSG_TYPE msg_type,
-                                                    const char *interface_name,
-                                                    ten_list_t *msg_names);

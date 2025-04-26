@@ -228,10 +228,6 @@ struct ten_extension_t {
   void *user_data;
 };
 
-TEN_RUNTIME_PRIVATE_API bool
-ten_extension_determine_and_merge_all_interface_dest_extension(
-    ten_extension_t *self);
-
 TEN_RUNTIME_PRIVATE_API void ten_extension_on_init(ten_extension_t *self);
 
 TEN_RUNTIME_PRIVATE_API void ten_extension_on_start(ten_extension_t *self);
