@@ -9,3 +9,5 @@
 #include "ten_runtime/ten_config.h"
 
 TEN_RUNTIME_API const char *ten_get_runtime_version(void);
+
+TEN_RUNTIME_API const char *ten_get_global_log_path(void);
