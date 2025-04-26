@@ -7,7 +7,6 @@
 mod crypto_test;
 mod graph;
 mod graph_check;
-mod interface;
 mod json_schema;
 mod pkg_info;
 mod schema;

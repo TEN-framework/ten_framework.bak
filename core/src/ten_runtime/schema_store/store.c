@@ -12,7 +12,6 @@
 #include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/msg/msg.h"
 #include "include_internal/ten_runtime/schema_store/cmd.h"
-#include "include_internal/ten_runtime/schema_store/interface.h"
 #include "include_internal/ten_runtime/schema_store/msg.h"
 #include "include_internal/ten_runtime/schema_store/property.h"
 #include "include_internal/ten_utils/schema/constant_str.h"
@@ -22,13 +21,10 @@
 #include "ten_runtime/msg/msg.h"
 #include "ten_utils/container/hash_table.h"
 #include "ten_utils/container/list.h"
-#include "ten_utils/container/list_ptr.h"
 #include "ten_utils/lib/error.h"
 #include "ten_utils/lib/string.h"
-#include "ten_utils/log/log.h"
 #include "ten_utils/macro/check.h"
 #include "ten_utils/macro/field.h"
-#include "ten_utils/macro/mark.h"
 #include "ten_utils/value/value.h"
 #include "ten_utils/value/value_is.h"
 #include "ten_utils/value/value_kv.h"
@@ -121,10 +117,6 @@ void ten_schema_store_init(ten_schema_store_t *self) {
                      offsetof(ten_msg_schema_t, hh_in_map));
   ten_hashtable_init(&self->audio_frame_out,
                      offsetof(ten_msg_schema_t, hh_in_map));
-  ten_hashtable_init(&self->interface_in,
-                     offsetof(ten_interface_schema_t, hh_in_map));
-  ten_hashtable_init(&self->interface_out,
-                     offsetof(ten_interface_schema_t, hh_in_map));
 }
 
 // The schema definition is as follows:
@@ -139,13 +131,7 @@ void ten_schema_store_init(ten_schema_store_t *self) {
 //   "video_frame_out": [],
 //   "audio_frame_in": [],
 //   "audio_frame_out": [],
-//   "interface_in": [],
-//   "interface_out": []
 // }
-//
-// The `interface_in` and `interface_out` will not be parsed here, as they are
-// only used in extensions. The base directory of the addon is needed to resolve
-// the full definition of the interface schema, we will parse them alone.
 bool ten_schema_store_set_schema_definition(ten_schema_store_t *self,
                                             ten_value_t *schema_def,
                                             ten_error_t *err) {
@@ -237,153 +223,6 @@ bool ten_schema_store_set_schema_definition(ten_schema_store_t *self,
   return true;
 }
 
-#if defined(TEN_ENABLE_TEN_RUST_APIS)
-static void ten_schemas_parse_interface_part(
-    ten_hashtable_t *interface_schema_map, ten_value_t *interface_schema_value,
-    const char *base_dir) {
-  TEN_ASSERT(interface_schema_map, "Invalid argument.");
-  TEN_ASSERT(interface_schema_value &&
-                 ten_value_check_integrity(interface_schema_value),
-             "Invalid argument.");
-
-  if (!ten_value_is_array(interface_schema_value)) {
-    TEN_ASSERT(0, "The schema should be an array.");
-    return;
-  }
-
-  ten_error_t err;
-  TEN_ERROR_INIT(err);
-
-  do {
-    ten_value_t *resolved_interface_schemas = ten_interface_schema_info_resolve(
-        interface_schema_value, base_dir, &err);
-    if (!resolved_interface_schemas) {
-      TEN_LOGW("Failed to resolve interface schema, %s.",
-               ten_error_message(&err));
-      break;
-    }
-
-    ten_value_array_foreach(resolved_interface_schemas, iter) {
-      ten_value_t *resolved_interface_schema = ten_ptr_listnode_get(iter.node);
-
-      ten_interface_schema_t *interface_schema =
-          ten_interface_schema_create(resolved_interface_schema);
-      if (!interface_schema) {
-        TEN_ASSERT(0, "Failed to create schema for interface.");
-        break;
-      }
-
-      ten_hashtable_add_string(interface_schema_map,
-                               &interface_schema->hh_in_map,
-                               ten_string_get_raw_str(&interface_schema->name),
-                               ten_interface_schema_destroy);
-    }
-
-    ten_value_destroy(resolved_interface_schemas);
-  } while (0);
-
-  ten_error_deinit(&err);
-}
-
-static bool ten_schema_store_merge_interface_schemas_into_msg_schemas(
-    ten_schema_store_t *self, bool is_msg_out,
-    ten_hashtable_t *interface_schemas, ten_error_t *err) {
-  TEN_ASSERT(self && ten_schema_store_check_integrity(self),
-             "Invalid argument.");
-
-  ten_hashtable_t *cmd_schemas_map =
-      is_msg_out ? &self->cmd_out : &self->cmd_in;
-  ten_hashtable_t *data_schemas_map =
-      is_msg_out ? &self->data_out : &self->data_in;
-  ten_hashtable_t *video_frame_schemas_map =
-      is_msg_out ? &self->video_frame_out : &self->video_frame_in;
-  ten_hashtable_t *audio_frame_schemas_map =
-      is_msg_out ? &self->audio_frame_out : &self->audio_frame_in;
-
-  ten_hashtable_foreach(interface_schemas, iter) {
-    ten_hashhandle_t *hh = iter.node;
-    ten_interface_schema_t *interface_schema =
-        CONTAINER_OF_FROM_OFFSET(hh, interface_schemas->hh_offset);
-    TEN_ASSERT(interface_schema &&
-                   ten_interface_schema_check_integrity(interface_schema),
-               "Invalid argument.");
-
-    if (!ten_interface_schema_merge_into_msg_schema(
-            interface_schema, TEN_MSG_TYPE_CMD, cmd_schemas_map, err)) {
-      return false;
-    }
-
-    if (!ten_interface_schema_merge_into_msg_schema(
-            interface_schema, TEN_MSG_TYPE_DATA, data_schemas_map, err)) {
-      return false;
-    }
-
-    if (!ten_interface_schema_merge_into_msg_schema(
-            interface_schema, TEN_MSG_TYPE_VIDEO_FRAME, video_frame_schemas_map,
-            err)) {
-      return false;
-    }
-
-    if (!ten_interface_schema_merge_into_msg_schema(
-            interface_schema, TEN_MSG_TYPE_AUDIO_FRAME, audio_frame_schemas_map,
-            err)) {
-      return false;
-    }
-  }
-
-  return true;
-}
-#endif
-
-/**
- * @param base_dir The base directory of the addon. If the interface definition
- * is a file reference, it is used to resolve the file reference based on the
- * base_dir.
- */
-bool ten_schema_store_set_interface_schema_definition(
-    ten_schema_store_t *self, ten_value_t *schema_def,
-    TEN_UNUSED const char *base_dir, ten_error_t *err) {
-  TEN_ASSERT(self && ten_schema_store_check_integrity(self),
-             "Invalid argument.");
-  TEN_ASSERT(schema_def && ten_value_check_integrity(schema_def),
-             "Invalid argument.");
-  TEN_ASSERT(err && ten_error_check_integrity(err), "Invalid argument.");
-
-#if defined(TEN_ENABLE_TEN_RUST_APIS)
-  if (!ten_value_is_object(schema_def)) {
-    ten_error_set(err, TEN_ERROR_CODE_GENERIC,
-                  "The interface schema should be an object.");
-    return false;
-  }
-
-  ten_value_t *interface_in =
-      ten_value_object_peek(schema_def, TEN_STR_INTERFACE_IN);
-  if (interface_in) {
-    ten_schemas_parse_interface_part(&self->interface_in, interface_in,
-                                     base_dir);
-
-    if (!ten_schema_store_merge_interface_schemas_into_msg_schemas(
-            self, false, &self->interface_in, err)) {
-      return false;
-    }
-  }
-
-  ten_value_t *interface_out =
-      ten_value_object_peek(schema_def, TEN_STR_INTERFACE_OUT);
-  if (interface_out) {
-    ten_schemas_parse_interface_part(&self->interface_out, interface_out,
-                                     base_dir);
-
-    if (!ten_schema_store_merge_interface_schemas_into_msg_schemas(
-            self, true, &self->interface_out, err)) {
-      return false;
-    }
-  }
-#endif
-
-  return true;
-}
-
 void ten_schema_store_deinit(ten_schema_store_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
 
@@ -401,8 +240,6 @@ void ten_schema_store_deinit(ten_schema_store_t *self) {
   ten_hashtable_deinit(&self->video_frame_out);
   ten_hashtable_deinit(&self->audio_frame_in);
   ten_hashtable_deinit(&self->audio_frame_out);
-  ten_hashtable_deinit(&self->interface_in);
-  ten_hashtable_deinit(&self->interface_out);
 }
 
 // {
@@ -539,58 +376,4 @@ ten_msg_schema_t *ten_schema_store_get_msg_schema(ten_schema_store_t *self,
   }
 
   return NULL;
-}
-
-bool ten_schema_store_get_all_msg_names_in_interface_out(
-    ten_schema_store_t *self, TEN_MSG_TYPE msg_type, const char *interface_name,
-    ten_list_t *msg_names) {
-  TEN_ASSERT(self && ten_schema_store_check_integrity(self),
-             "Invalid argument.");
-  TEN_ASSERT(interface_name && msg_names, "Invalid argument.");
-
-  ten_hashhandle_t *hh =
-      ten_hashtable_find_string(&self->interface_out, interface_name);
-  if (!hh) {
-    return false;
-  }
-
-  ten_interface_schema_t *interface_schema =
-      CONTAINER_OF_FROM_FIELD(hh, ten_interface_schema_t, hh_in_map);
-
-  ten_list_t *msg_schemas = NULL;
-  switch (msg_type) {
-  case TEN_MSG_TYPE_CMD:
-    msg_schemas = &interface_schema->cmd;
-    break;
-
-  case TEN_MSG_TYPE_DATA:
-    msg_schemas = &interface_schema->data;
-    break;
-
-  case TEN_MSG_TYPE_VIDEO_FRAME:
-    msg_schemas = &interface_schema->video_frame;
-    break;
-
-  case TEN_MSG_TYPE_AUDIO_FRAME:
-    msg_schemas = &interface_schema->audio_frame;
-    break;
-
-  default:
-    TEN_ASSERT(0, "Invalid argument.");
-    break;
-  }
-
-  if (!msg_schemas) {
-    return false;
-  }
-
-  ten_list_foreach (msg_schemas, iter) {
-    ten_msg_schema_t *msg_schema = ten_ptr_listnode_get(iter.node);
-    TEN_ASSERT(msg_schema && ten_msg_schema_check_integrity(msg_schema),
-               "Invalid argument.");
-
-    ten_list_push_ptr_back(msg_names, &msg_schema->msg_name, NULL);
-  }
-
-  return true;
 }

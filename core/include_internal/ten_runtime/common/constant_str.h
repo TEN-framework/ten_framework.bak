@@ -12,7 +12,6 @@
 #define TEN_STR_CMD "cmd"
 #define TEN_STR_DATA "data"
 #define TEN_STR_VIDEO_FRAME "video_frame"
-#define TEN_STR_INTERFACE "interface"
 #define TEN_STR_AUDIO_FRAME "audio_frame"
 
 // Message relevant fields.
@@ -45,8 +44,6 @@
 #define TEN_STR_DATA_OUT "data_out"
 #define TEN_STR_VIDEO_FRAME_IN "video_frame_in"
 #define TEN_STR_VIDEO_FRAME_OUT "video_frame_out"
-#define TEN_STR_INTERFACE_IN "interface_in"
-#define TEN_STR_INTERFACE_OUT "interface_out"
 #define TEN_STR_AUDIO_FRAME_IN "audio_frame_in"
 #define TEN_STR_AUDIO_FRAME_OUT "audio_frame_out"
 

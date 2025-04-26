@@ -29,10 +29,6 @@ TEN_RUST_PRIVATE_API bool ten_cipher_encrypt_inplace(Cipher *cipher_ptr,
                                                      uint8_t *data,
                                                      uintptr_t data_len);
 
-TEN_RUST_PRIVATE_API bool ten_interface_schema_resolve_definition(
-    const char *content, const char *base_dir, const char **out_content,
-    const char **out_err_msg);
-
 TEN_RUST_PRIVATE_API char *ten_remove_json_comments(
     const char *json_with_comments);
 

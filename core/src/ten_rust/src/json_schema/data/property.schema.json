@@ -277,9 +277,6 @@
         "cmd": {
           "$ref": "#/$defs/extensionCmdsInGraph"
         },
-        "interface": {
-          "$ref": "#/$defs/extensionCmdsInGraph"
-        },
         "data": {
           "$ref": "#/$defs/extensionDatasInGraph"
         },

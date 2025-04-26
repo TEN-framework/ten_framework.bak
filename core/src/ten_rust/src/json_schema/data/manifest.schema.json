@@ -354,65 +354,6 @@
           "minItems": 1
         }
       }
-    },
-    "interface_standalone": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "name"
-      ],
-      "properties": {
-        "name": { // The api name should be alphanumericCharacters.
-          "$ref": "#/$defs/alphanumericCharacters"
-        },
-        "cmd": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/cmdLikeApi"
-          }
-        },
-        "data": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/dataLikeApi"
-          }
-        },
-        "audio_frame": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/dataLikeApi"
-          }
-        },
-        "video_frame": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/dataLikeApi"
-          }
-        }
-      }
-    },
-    "interface_ref": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "name",
-        "$ref"
-      ],
-      "properties": {
-        "name": { // The api name should be alphanumericCharacters.
-          "$ref": "#/$defs/alphanumericCharacters"
-        },
-        "$ref": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/httpsUri"
-            },
-            {
-              "$ref": "#/$defs/fileUri"
-            }
-          ]
-        }
-      }
     }
   },
   "type": "object",
@@ -498,32 +439,6 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/dataLikeApi"
-          }
-        },
-        "interface_in": {
-          "type": "array",
-          "items": {
-            "oneOf": [
-              {
-                "$ref": "#/$defs/interface_standalone"
-              },
-              {
-                "$ref": "#/$defs/interface_ref"
-              }
-            ]
-          }
-        },
-        "interface_out": {
-          "type": "array",
-          "items": {
-            "oneOf": [
-              {
-                "$ref": "#/$defs/interface_standalone"
-              },
-              {
-                "$ref": "#/$defs/interface_ref"
-              }
-            ]
           }
         }
       }

@@ -35,7 +35,6 @@
 #include "include_internal/ten_runtime/path/result_return_policy.h"
 #include "include_internal/ten_runtime/schema_store/store.h"
 #include "include_internal/ten_runtime/ten_env/ten_env.h"
-#include "include_internal/ten_utils/log/log.h"
 #include "ten_runtime/addon/addon.h"
 #include "ten_runtime/app/app.h"
 #include "ten_runtime/common/error_code.h"
@@ -209,128 +208,6 @@ void ten_extension_destroy(ten_extension_t *self) {
   ten_hashtable_deinit(&self->msg_not_connected_count_map);
 
   TEN_FREE(self);
-}
-
-static bool ten_extension_check_if_msg_dests_have_msg_names(
-    ten_extension_t *self, ten_list_t *msg_dests, ten_list_t *msg_names) {
-  TEN_ASSERT(msg_dests && msg_names, "Invalid argument.");
-
-  ten_list_foreach (msg_dests, iter) {
-    ten_shared_ptr_t *shared_msg_dest = ten_smart_ptr_listnode_get(iter.node);
-    ten_msg_dest_info_t *msg_dest = ten_shared_ptr_get_data(shared_msg_dest);
-    TEN_ASSERT(msg_dest && ten_msg_dest_info_check_integrity(msg_dest),
-               "Invalid argument.");
-
-    ten_listnode_t *node = ten_list_find_ptr_custom(msg_names, &msg_dest->name,
-                                                    ten_string_is_equal);
-    if (node) {
-      TEN_ASSERT(0, "Extension (%s) has duplicated msg name (%s) in dest info.",
-                 ten_extension_get_name(self, true),
-                 ten_string_get_raw_str(&msg_dest->name));
-      return true;
-    }
-  }
-
-  return false;
-}
-
-static bool ten_extension_merge_interface_dest_to_msg(
-    ten_extension_t *self, ten_extension_context_t *extension_context,
-    ten_list_iterator_t iter, TEN_MSG_TYPE msg_type, ten_list_t *msg_dests) {
-  TEN_ASSERT(
-      self && ten_extension_check_integrity(self, true) && extension_context,
-      "Should not happen.");
-
-  ten_msg_dest_info_t *interface_dest =
-      ten_shared_ptr_get_data(ten_smart_ptr_listnode_get(iter.node));
-  TEN_ASSERT(interface_dest, "Should not happen.");
-
-  ten_string_t *interface_name = &interface_dest->name;
-  TEN_ASSERT(!ten_string_is_empty(interface_name), "Should not happen.");
-
-  ten_list_t all_msg_names_in_interface_out = TEN_LIST_INIT_VAL;
-  bool interface_found = ten_schema_store_get_all_msg_names_in_interface_out(
-      &self->schema_store, msg_type, ten_string_get_raw_str(interface_name),
-      &all_msg_names_in_interface_out);
-  if (!interface_found) {
-    TEN_ASSERT(0, "Extension uses an undefined output interface (%s).",
-               ten_string_get_raw_str(interface_name));
-    return false;
-  }
-
-  if (ten_list_is_empty(&all_msg_names_in_interface_out)) {
-    // The interface does not define any message of this type, it's legal.
-    return true;
-  }
-
-  if (ten_extension_check_if_msg_dests_have_msg_names(
-          self, msg_dests, &all_msg_names_in_interface_out)) {
-    TEN_ASSERT(0, "Should not happen.");
-    return false;
-  }
-
-  ten_list_foreach (&all_msg_names_in_interface_out, iter) {
-    ten_string_t *msg_name = ten_ptr_listnode_get(iter.node);
-    TEN_ASSERT(msg_name, "Should not happen.");
-
-    ten_msg_dest_info_t *msg_dest =
-        ten_msg_dest_info_create(ten_string_get_raw_str(msg_name));
-
-    ten_list_foreach (&interface_dest->dest, iter_dest) {
-      ten_weak_ptr_t *shared_dest_extension_info =
-          ten_smart_ptr_listnode_get(iter_dest.node);
-      ten_list_push_smart_ptr_back(&msg_dest->dest, shared_dest_extension_info);
-    }
-
-    ten_shared_ptr_t *shared_msg_dest =
-        ten_shared_ptr_create(msg_dest, ten_msg_dest_info_destroy);
-    ten_list_push_smart_ptr_back(msg_dests, shared_msg_dest);
-    ten_shared_ptr_destroy(shared_msg_dest);
-  }
-
-  ten_list_clear(&all_msg_names_in_interface_out);
-
-  return true;
-}
-
-bool ten_extension_determine_and_merge_all_interface_dest_extension(
-    ten_extension_t *self) {
-  TEN_ASSERT(self && ten_extension_check_integrity(self, true),
-             "Invalid argument.");
-  TEN_ASSERT(self->state == TEN_EXTENSION_STATE_ON_CONFIGURE_DONE,
-             "Extension should be on_configure_done.");
-
-  if (!self->extension_info) {
-    return true;
-  }
-
-  ten_list_foreach (&self->extension_info->msg_dest_info.interface, iter) {
-    if (!ten_extension_merge_interface_dest_to_msg(
-            self, self->extension_context, iter, TEN_MSG_TYPE_CMD,
-            &self->extension_info->msg_dest_info.cmd)) {
-      return false;
-    }
-
-    if (!ten_extension_merge_interface_dest_to_msg(
-            self, self->extension_context, iter, TEN_MSG_TYPE_DATA,
-            &self->extension_info->msg_dest_info.data)) {
-      return false;
-    }
-
-    if (!ten_extension_merge_interface_dest_to_msg(
-            self, self->extension_context, iter, TEN_MSG_TYPE_VIDEO_FRAME,
-            &self->extension_info->msg_dest_info.video_frame)) {
-      return false;
-    }
-
-    if (!ten_extension_merge_interface_dest_to_msg(
-            self, self->extension_context, iter, TEN_MSG_TYPE_AUDIO_FRAME,
-            &self->extension_info->msg_dest_info.audio_frame)) {
-      return false;
-    }
-  }
-
-  return true;
 }
 
 static ten_msg_dest_info_t *ten_extension_get_msg_dests_from_graph_internal(

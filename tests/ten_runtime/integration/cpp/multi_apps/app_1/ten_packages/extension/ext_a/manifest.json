@@ -21,7 +21,6 @@
     "video_frame_in": [],
     "video_frame_out": [],
     "audio_frame_in": [],
-    "audio_frame_out": [],
-    "interface_in": []
+    "audio_frame_out": []
   }
 }
