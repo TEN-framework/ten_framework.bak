@@ -19,6 +19,9 @@ use futures::future::select;
 use futures::FutureExt;
 use prometheus::Registry;
 
+// Import ten_app_t from the bindings
+use self::bindings::ten_app_t;
+
 use crate::constants::{
     SERVICE_HUB_SERVER_BIND_MAX_RETRIES,
     SERVICE_HUB_SERVER_BIND_RETRY_INTERVAL_SECS,
@@ -45,6 +48,7 @@ fn configure_routes(
     registry: Registry,
     is_telemetry_endpoint: bool,
     is_api_endpoint: bool,
+    app: *mut ten_app_t,
 ) {
     if is_telemetry_endpoint {
         // Configure telemetry endpoint.
@@ -53,7 +57,7 @@ fn configure_routes(
 
     if is_api_endpoint {
         // Configure API endpoints.
-        api::configure_api_route(cfg);
+        api::configure_api_route(cfg, app);
     }
 }
 
@@ -96,6 +100,7 @@ fn create_server_app(
     registry: Registry,
     telemetry_endpoint: &Option<String>,
     api_endpoint: &Option<String>,
+    app: *mut ten_app_t,
 ) -> App<
     impl actix_web::dev::ServiceFactory<
         actix_web::dev::ServiceRequest,
@@ -145,7 +150,13 @@ fn create_server_app(
                         }
                     }))
                     .configure(|cfg| {
-                        configure_routes(cfg, registry.clone(), true, false)
+                        configure_routes(
+                            cfg,
+                            registry.clone(),
+                            true,
+                            false,
+                            app,
+                        )
                     }),
             )
             // Add API routes with guard.
@@ -171,7 +182,13 @@ fn create_server_app(
                         }
                     }))
                     .configure(|cfg| {
-                        configure_routes(cfg, registry.clone(), false, true)
+                        configure_routes(
+                            cfg,
+                            registry.clone(),
+                            false,
+                            true,
+                            app,
+                        )
                     }),
             )
     } else {
@@ -181,7 +198,7 @@ fn create_server_app(
         let is_api = api_endpoint.is_some();
 
         app_builder.configure(|cfg| {
-            configure_routes(cfg, registry.clone(), is_telemetry, is_api)
+            configure_routes(cfg, registry.clone(), is_telemetry, is_api, app)
         })
     }
 }
@@ -196,6 +213,7 @@ fn create_server_and_bind_to_addresses(
     registry: Registry,
     telemetry_endpoint: &Option<String>,
     api_endpoint: &Option<String>,
+    app: *mut ten_app_t,
 ) -> (Option<actix_web::dev::Server>, Vec<String>) {
     let mut bind_errors = Vec::new();
 
@@ -203,6 +221,7 @@ fn create_server_and_bind_to_addresses(
     let registry_clone = registry.clone();
     let telemetry_endpoint_clone = telemetry_endpoint.clone();
     let api_endpoint_clone = api_endpoint.clone();
+    let app_clone = app;
 
     // Create a new server with a factory that uses the create_server_app
     // function
@@ -211,6 +230,7 @@ fn create_server_and_bind_to_addresses(
             registry_clone.clone(),
             &telemetry_endpoint_clone,
             &api_endpoint_clone,
+            app_clone,
         )
     })
     .shutdown_timeout(0)
@@ -287,49 +307,42 @@ fn create_service_hub_server_with_retry(
     telemetry_endpoint: &Option<String>,
     api_endpoint: &Option<String>,
     registry: Registry,
+    app: *mut ten_app_t,
 ) -> Option<actix_web::dev::Server> {
     // If both endpoints are None, return None early.
     if telemetry_endpoint.is_none() && api_endpoint.is_none() {
         return None;
     }
 
-    let mut attempts = 0;
-    let max_attempts = SERVICE_HUB_SERVER_BIND_MAX_RETRIES;
-    let wait_duration = std::time::Duration::from_secs(
-        SERVICE_HUB_SERVER_BIND_RETRY_INTERVAL_SECS,
-    );
-
-    // Get addresses to bind to.
+    // Determine which addresses to bind to.
     let binding_addresses =
         determine_binding_addresses(telemetry_endpoint, api_endpoint);
 
-    // Try to create and bind the HTTP server, with retries if it fails.
-    loop {
-        // Log the addresses we're binding to.
-        eprintln!("Attempting to bind to: {:?}", binding_addresses);
-
-        // Try to bind to all addresses using the extracted function
-        let (bound_server, bind_errors) = create_server_and_bind_to_addresses(
+    // Try to bind a few times with retry.
+    for i in 0..SERVICE_HUB_SERVER_BIND_MAX_RETRIES {
+        let (server, errors) = create_server_and_bind_to_addresses(
             &binding_addresses,
             registry.clone(),
             telemetry_endpoint,
             api_endpoint,
+            app,
         );
 
         // If we've successfully bound to the specified addresses, return the
         // server.
-        if bound_server.is_some() {
-            return bound_server;
+        if server.is_some() {
+            return server;
         }
 
         // If we've reached the maximum number of attempts, log the error and
         // return None.
-        attempts += 1;
-        if attempts >= max_attempts {
+        if i >= SERVICE_HUB_SERVER_BIND_MAX_RETRIES - 1 {
             eprintln!(
                 "Error binding to addresses: {:?} after {} attempts. Errors: \
                  {:?}",
-                binding_addresses, attempts, bind_errors
+                binding_addresses,
+                i + 1,
+                errors
             );
 
             // Provide a helpful message for common issues.
@@ -345,8 +358,8 @@ fn create_service_hub_server_with_retry(
         eprintln!(
             "Failed to bind to endpoints. Attempt {} of {}. Retrying in {} \
              second{}...",
-            attempts,
-            max_attempts,
+            i + 1,
+            SERVICE_HUB_SERVER_BIND_MAX_RETRIES,
             SERVICE_HUB_SERVER_BIND_RETRY_INTERVAL_SECS,
             if SERVICE_HUB_SERVER_BIND_RETRY_INTERVAL_SECS == 1 {
                 ""
@@ -354,8 +367,12 @@ fn create_service_hub_server_with_retry(
                 "s"
             }
         );
-        std::thread::sleep(wait_duration);
+        std::thread::sleep(std::time::Duration::from_secs(
+            SERVICE_HUB_SERVER_BIND_RETRY_INTERVAL_SECS,
+        ));
     }
+
+    None
 }
 
 /// Creates and starts a server thread that runs the actix system with the
@@ -447,6 +464,7 @@ pub unsafe extern "C" fn ten_service_hub_create(
     telemetry_port: u32,
     api_host: *const c_char,
     api_port: u32,
+    app: *mut ten_app_t,
 ) -> *mut ServiceHub {
     // Check if both hosts are NULL, if so, return null.
     if telemetry_host.is_null() && api_host.is_null() {
@@ -498,6 +516,7 @@ pub unsafe extern "C" fn ten_service_hub_create(
                 &telemetry_endpoint,
                 &api_endpoint,
                 registry_clone,
+                app,
             ) {
                 Some(server) => server,
                 None => {
@@ -529,6 +548,7 @@ pub unsafe extern "C" fn ten_service_hub_create(
                 &telemetry_endpoint,
                 &api_endpoint,
                 registry_clone,
+                app,
             ) {
                 Some(server) => server,
                 None => {
@@ -564,6 +584,7 @@ pub unsafe extern "C" fn ten_service_hub_create(
             &telemetry_endpoint,
             &None,
             registry_clone,
+            app,
         ) {
             Some(server) => server,
             None => {
@@ -594,6 +615,7 @@ pub unsafe extern "C" fn ten_service_hub_create(
             &None,
             &api_endpoint,
             registry_clone,
+            app,
         ) {
             Some(server) => server,
             None => {

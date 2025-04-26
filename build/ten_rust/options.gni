@@ -94,5 +94,9 @@ declare_args() {
 }
 
 declare_args() {
+  teb_rust_enable_cbindgen = false
+}
+
+declare_args() {
   ten_rust_enable_tests = true
 }

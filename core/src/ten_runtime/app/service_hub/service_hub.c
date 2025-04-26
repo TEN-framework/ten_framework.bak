@@ -93,7 +93,7 @@ bool ten_app_init_service_hub(ten_app_t *self, ten_value_t *value) {
   // Create service hub with collected parameters.
   if (telemetry_host != NULL || api_host != NULL) {
     self->service_hub.service_hub = ten_service_hub_create(
-        telemetry_host, telemetry_port, api_host, api_port);
+        telemetry_host, telemetry_port, api_host, api_port, self);
 
     if (!self->service_hub.service_hub) {
       TEN_LOGE("Failed to create service hub");

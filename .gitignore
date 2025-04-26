@@ -81,8 +81,6 @@ core/src/ten_runtime/binding/nodejs/build
 
 # Rust generated files
 core/src/ten_manager/target/
-core/src/ten_rust/src/schema/bindings.rs
-core/src/ten_rust/src/service_hub/bindings.rs
 core/src/ten_rust/target/
 /.cargo
 

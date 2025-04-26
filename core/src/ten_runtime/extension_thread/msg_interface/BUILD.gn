@@ -10,6 +10,8 @@ ten_runtime_glob("msg_interface") {
   file_list = all_native_files
 
   if (ten_enable_ten_rust && ten_enable_ten_rust_apis) {
-    deps = [ "//core/src/ten_rust:ten_rust_binding" ]
+    if (teb_rust_enable_cbindgen) {
+      deps = [ "//core/src/ten_rust:ten_rust_binding" ]
+    }
   }
 }
