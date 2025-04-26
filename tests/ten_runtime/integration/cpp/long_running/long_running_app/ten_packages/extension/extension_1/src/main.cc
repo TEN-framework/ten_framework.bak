@@ -15,10 +15,10 @@ class test_extension : public ten::extension_t {
   explicit test_extension(const char *name) : ten::extension_t(name) {}
 
   void on_start(ten::ten_env_t &ten_env) override {
+    ten_env.on_start_done();
+
     auto test_cmd = ten::cmd_t::create("test_cmd_from_1");
     ten_env.send_cmd(std::move(test_cmd));
-
-    ten_env.on_start_done();
   }
 
   void on_cmd(ten::ten_env_t &ten_env,
