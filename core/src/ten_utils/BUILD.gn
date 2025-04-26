@@ -87,7 +87,11 @@ shared_library("ten_utils_shared") {
 }
 
 ten_utils_group("ten_utils") {
-  public_deps = [ ":ten_utils_shared" ]
+  if (ten_utils_build_shared) {
+    public_deps = [ ":ten_utils_shared" ]
+  } else {
+    public_deps = [ ":ten_utils_static" ]
+  }
 }
 
 # Although ten_utils_static uses 'complete_static_lib = true', this

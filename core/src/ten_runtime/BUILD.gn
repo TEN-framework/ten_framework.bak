@@ -56,7 +56,7 @@ ten_target("ten_runtime_library") {
     "ten_env_proxy",
     "test",
     "timer",
-    "//core/src/ten_utils:ten_utils_shared",
+    "//core/src/ten_utils",
   ]
 
   if (!defined(ldflags)) {

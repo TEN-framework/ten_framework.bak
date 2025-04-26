@@ -5,6 +5,11 @@
 # Refer to the "LICENSE" file in the root directory for more information.
 #
 declare_args() {
+  # If set, ten_utils will be built as a shared library.
+  ten_utils_build_shared = false
+}
+
+declare_args() {
   # If set, including io engine(s) and its(their) underlying io engine lib
   ten_utils_enable_io = true
 

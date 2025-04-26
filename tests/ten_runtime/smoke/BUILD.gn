@@ -25,7 +25,6 @@ ten_executable("ten_runtime_smoke_test") {
   deps = [
     ":ten_runtime_smoke_tests",
     "//core/src/ten_runtime",
-    "//core/src/ten_utils:ten_utils_shared",
     "//packages/core_protocols/msgpack:msgpack_files_for_builtin_protocol",
     "//tests/ten_runtime:copy_libraries_for_test",
     "//third_party/nlohmann_json",
