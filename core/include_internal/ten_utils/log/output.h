@@ -50,3 +50,5 @@ TEN_UTILS_PRIVATE_API void ten_log_output_to_stderr(ten_log_t *self,
 
 TEN_UTILS_PRIVATE_API void ten_log_set_output_to_file(ten_log_t *self,
                                                       const char *log_path);
+
+TEN_UTILS_PRIVATE_API const char *ten_log_get_output_file_path(ten_log_t *self);

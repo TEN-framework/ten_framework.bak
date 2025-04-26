@@ -37,6 +37,10 @@ pub struct GetPackagesRequestPayload {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(default)]
     pub page: Option<u32>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    pub tags: Option<Vec<String>>,
 }
 
 #[derive(Serialize, Debug)]
@@ -71,6 +75,7 @@ pub async fn get_packages_endpoint(
         request_query.pkg_type,
         request_query.name.clone(),
         version_req,
+        request_query.tags.clone(),
         request_query.page_size,
         request_query.page,
         &state.out,

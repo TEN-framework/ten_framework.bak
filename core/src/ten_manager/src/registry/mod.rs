@@ -120,6 +120,8 @@ pub async fn get_package(
 ///   extension).
 /// * `name` - Optional name of the package to search for.
 /// * `version_req` - Optional version requirement to filter packages.
+/// * `tags` - Optional tags to filter packages by. If specified, only packages
+///   with all the specified tags will be returned.
 /// * `page_size` - Optional number of items per page. Default is 100 if not
 ///   specified.
 /// * `page` - Optional page number to retrieve. If not specified, all items are
@@ -136,11 +138,13 @@ pub async fn get_package(
 /// * If the URL scheme is not supported (only "file" and "https" are
 ///   supported).
 /// * If there's an error retrieving the package list from the registry.
+#[allow(clippy::too_many_arguments)]
 pub async fn get_package_list(
     tman_config: Arc<tokio::sync::RwLock<TmanConfig>>,
     pkg_type: Option<PkgType>,
     name: Option<String>,
     version_req: Option<VersionReq>,
+    tags: Option<Vec<String>>,
     page_size: Option<u32>,
     page: Option<u32>,
     out: &Arc<Box<dyn TmanOutput>>,
@@ -168,6 +172,7 @@ pub async fn get_package_list(
                 pkg_type,
                 name,
                 version_req,
+                tags,
                 page_size,
                 page,
                 out,
@@ -181,6 +186,7 @@ pub async fn get_package_list(
                 pkg_type,
                 name,
                 version_req,
+                tags,
                 page_size,
                 page,
                 out,

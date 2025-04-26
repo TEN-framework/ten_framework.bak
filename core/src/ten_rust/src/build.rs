@@ -6,11 +6,11 @@
 //
 use std::{env, path::PathBuf};
 
-#[allow(dead_code)]
-mod archive {
+#[cfg(feature = "deprecated")]
+mod deprecated {
     use std::{env, fs, path::Path, process::id, thread, time::Duration};
 
-    fn auto_gen_schema_bindings_from_c() {
+    pub fn auto_gen_schema_bindings_from_c() {
         let mut base_dir = env::current_dir()
             .unwrap_or("Failed to get path of //ten_rust/src".into());
         base_dir.pop();
@@ -138,7 +138,7 @@ mod archive {
         }
     }
 
-    fn auto_gen_service_hub_bindings_from_c() {
+    pub fn auto_gen_service_hub_bindings_from_c() {
         let mut base_dir = env::current_dir()
             .unwrap_or("Failed to get path of //ten_rust/src".into());
         base_dir.pop();
@@ -290,8 +290,11 @@ fn auto_detect_utils_library_path() -> PathBuf {
 }
 
 fn main() {
-    // auto_gen_schema_bindings_from_c();
-    // auto_gen_service_hub_bindings_from_c();
+    #[cfg(feature = "deprecated")]
+    {
+        deprecated::auto_gen_schema_bindings_from_c();
+        deprecated::auto_gen_service_hub_bindings_from_c();
+    }
 
     // If the auto-detected utils library path is incorrect, we can specify it
     // using the environment variable.

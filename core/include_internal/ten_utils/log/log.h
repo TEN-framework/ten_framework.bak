@@ -62,6 +62,8 @@ TEN_UTILS_API void ten_log_global_set_output_to_stderr(void);
 
 TEN_UTILS_API void ten_log_global_set_output_to_file(const char *log_path);
 
+TEN_UTILS_API const char *ten_log_global_get_output_file_path(void);
+
 TEN_UTILS_API void ten_log_global_set_encrypt_cb(
     ten_log_encrypt_on_encrypt_func_t cb, void *cb_data);
 
