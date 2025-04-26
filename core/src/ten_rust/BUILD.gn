@@ -93,6 +93,11 @@ if (ten_enable_ten_rust) {
       deps = [ ":ten_rust_static_lib" ]
       public_configs = [ ":ten_rust_config" ]
     }
+  } else {
+    group("ten_rust_binding") {
+      deps = [ ":ten_rust_static_lib" ]
+      public_configs = [ ":ten_rust_config" ]
+    }
   }
 
   config("ten_rust_config") {
