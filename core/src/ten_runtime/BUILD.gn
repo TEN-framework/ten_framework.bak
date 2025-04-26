@@ -30,8 +30,6 @@ ten_target("ten_runtime_library") {
     type = "static_library"
   }
 
-  sources = [ "//core/src/ten_runtime/build_template/preserved_metadata.c" ]
-
   public_configs = [ ":ten_runtime_config" ]
 
   public_deps = [

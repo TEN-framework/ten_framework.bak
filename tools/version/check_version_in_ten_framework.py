@@ -15,10 +15,10 @@ def check_preserved_metadata_version_of_ten_runtime(
     c_preserved_metadata_file_src_file = os.path.join(
         repo_base_dir,
         "core",
-        "src",
+        "include_internal",
         "ten_runtime",
-        "build_template",
-        "preserved_metadata.c",
+        "common",
+        "version.h",
     )
 
     if os.path.exists(c_preserved_metadata_file_src_file):
@@ -27,7 +27,85 @@ def check_preserved_metadata_version_of_ten_runtime(
         ) as f:
             content = f.read()
 
-        if f"version={git_version}" in content:
+        if f'VERSION "{git_version}"' in content:
+            return True
+
+    return False
+
+
+def check_preserved_metadata_version_of_ten_runtime_go_binding(
+    repo_base_dir: str, git_version: str
+) -> bool:
+    c_preserved_metadata_file_src_file = os.path.join(
+        repo_base_dir,
+        "core",
+        "include_internal",
+        "ten_runtime",
+        "binding",
+        "go",
+        "internal",
+        "version.h",
+    )
+
+    if os.path.exists(c_preserved_metadata_file_src_file):
+        with open(
+            c_preserved_metadata_file_src_file, "r", encoding="utf-8"
+        ) as f:
+            content = f.read()
+
+        if f'VERSION "{git_version}"' in content:
+            return True
+
+    return False
+
+
+def check_preserved_metadata_version_of_ten_runtime_nodejs_binding(
+    repo_base_dir: str, git_version: str
+) -> bool:
+    c_preserved_metadata_file_src_file = os.path.join(
+        repo_base_dir,
+        "core",
+        "include_internal",
+        "ten_runtime",
+        "binding",
+        "nodejs",
+        "common",
+        "version.h",
+    )
+
+    if os.path.exists(c_preserved_metadata_file_src_file):
+        with open(
+            c_preserved_metadata_file_src_file, "r", encoding="utf-8"
+        ) as f:
+            content = f.read()
+
+        if f'VERSION "{git_version}"' in content:
+            return True
+
+    return False
+
+
+def check_preserved_metadata_version_of_ten_runtime_python_binding(
+    repo_base_dir: str, git_version: str
+) -> bool:
+    c_preserved_metadata_file_src_file = os.path.join(
+        repo_base_dir,
+        "core",
+        "include_internal",
+        "ten_runtime",
+        "binding",
+        "python",
+        "common",
+        "version.h",
+    )
+
+    if os.path.exists(c_preserved_metadata_file_src_file):
+        with open(
+            c_preserved_metadata_file_src_file, "r", encoding="utf-8"
+        ) as f:
+            content = f.read()
+
+        if f'VERSION "{git_version}"' in content:
             return True
 
     return False
@@ -115,6 +193,24 @@ def check_various_versions(repo_base_dir: str, git_version: str) -> bool:
         repo_base_dir, git_version
     ):
         print("ten_runtime preserved_metadata version does not match.")
+        return False
+
+    if not check_preserved_metadata_version_of_ten_runtime_go_binding(
+        repo_base_dir, git_version
+    ):
+        print("ten_runtime_go preserved_metadata version does not match.")
+        return False
+
+    if not check_preserved_metadata_version_of_ten_runtime_nodejs_binding(
+        repo_base_dir, git_version
+    ):
+        print("ten_runtime_nodejs preserved_metadata version does not match.")
+        return False
+
+    if not check_preserved_metadata_version_of_ten_runtime_python_binding(
+        repo_base_dir, git_version
+    ):
+        print("ten_runtime_python preserved_metadata version does not match.")
         return False
 
     if not check_version_of_tman(repo_base_dir, git_version):

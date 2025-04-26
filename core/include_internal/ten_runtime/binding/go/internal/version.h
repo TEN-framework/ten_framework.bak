@@ -4,10 +4,6 @@
 // Licensed under the Apache License, Version 2.0, with certain conditions.
 // Refer to the "LICENSE" file in the root directory for more information.
 //
-#include "include_internal/ten_runtime/common/preserved_metadata.h"
+#pragma once
 
-static char metadata[] = "version=0.1.0";
-
-void ten_preserved_metadata(void) {
-  ((char volatile *)metadata)[0] = metadata[0];
-}
+#define TEN_RUNTIME_GO_BINDING_VERSION "0.10.0"

@@ -31,12 +31,14 @@ def __collect_manifest_files(directory) -> list[str]:
     manifests = []
 
     for _, dirs, _ in os.walk(directory, followlinks=True):
-        for dir in dirs:
-            if os.path.exists(os.path.join(directory, dir, MANIFEST_JSON_FILE)):
+        for entry in dirs:
+            if os.path.exists(
+                os.path.join(directory, entry, MANIFEST_JSON_FILE)
+            ):
                 manifests.append(
                     os.path.join(
                         directory,
-                        dir,
+                        entry,
                         MANIFEST_JSON_FILE,
                     )
                 )
@@ -49,14 +51,14 @@ def __collect_manifest_tent_files(directory) -> list[str]:
     manifest_templates = []
 
     for _, dirs, _ in os.walk(directory, followlinks=True):
-        for dir in dirs:
+        for entry in dirs:
             if os.path.exists(
-                os.path.join(directory, dir, MANIFEST_JSON_TENT_FILE)
+                os.path.join(directory, entry, MANIFEST_JSON_TENT_FILE)
             ):
                 manifest_templates.append(
                     os.path.join(
                         directory,
-                        dir,
+                        entry,
                         MANIFEST_JSON_TENT_FILE,
                     )
                 )
@@ -66,29 +68,121 @@ def __collect_manifest_tent_files(directory) -> list[str]:
 
 
 def update_c_preserved_metadata_version_of_ten_runtime_binary(
-    log_level, year, year_month, git_version, repo_base_dir
+    year, year_month, git_version, repo_base_dir
 ):
     # Update the version in the C preserved metadata files.
     c_preserved_metadata_file_src_file = os.path.join(
         repo_base_dir,
         "core",
-        "src",
+        "include_internal",
         "ten_runtime",
-        "build_template",
-        "preserved_metadata.c",
+        "common",
+        "version.h",
     )
 
     c_preserved_metadata_file_template_file = os.path.join(
         repo_base_dir,
         "core",
-        "src",
+        "include_internal",
         "ten_runtime",
-        "build_template",
-        "preserved_metadata.c.jinja2",
+        "common",
+        "version.h.jinja2",
     )
 
     update_c_preserved_metadata_version(
-        log_level,
+        year,
+        year_month,
+        git_version,
+        c_preserved_metadata_file_src_file,
+        c_preserved_metadata_file_template_file,
+    )
+
+    # go binding.
+    c_preserved_metadata_file_src_file = os.path.join(
+        repo_base_dir,
+        "core",
+        "include_internal",
+        "ten_runtime",
+        "binding",
+        "go",
+        "internal",
+        "version.h",
+    )
+
+    c_preserved_metadata_file_template_file = os.path.join(
+        repo_base_dir,
+        "core",
+        "include_internal",
+        "ten_runtime",
+        "binding",
+        "go",
+        "internal",
+        "version.h.jinja2",
+    )
+
+    update_c_preserved_metadata_version(
+        year,
+        year_month,
+        git_version,
+        c_preserved_metadata_file_src_file,
+        c_preserved_metadata_file_template_file,
+    )
+
+    # nodejs binding.
+    c_preserved_metadata_file_src_file = os.path.join(
+        repo_base_dir,
+        "core",
+        "include_internal",
+        "ten_runtime",
+        "binding",
+        "nodejs",
+        "common",
+        "version.h",
+    )
+
+    c_preserved_metadata_file_template_file = os.path.join(
+        repo_base_dir,
+        "core",
+        "include_internal",
+        "ten_runtime",
+        "binding",
+        "nodejs",
+        "common",
+        "version.h.jinja2",
+    )
+
+    update_c_preserved_metadata_version(
+        year,
+        year_month,
+        git_version,
+        c_preserved_metadata_file_src_file,
+        c_preserved_metadata_file_template_file,
+    )
+
+    # Python binding.
+    c_preserved_metadata_file_src_file = os.path.join(
+        repo_base_dir,
+        "core",
+        "include_internal",
+        "ten_runtime",
+        "binding",
+        "python",
+        "common",
+        "version.h",
+    )
+
+    c_preserved_metadata_file_template_file = os.path.join(
+        repo_base_dir,
+        "core",
+        "include_internal",
+        "ten_runtime",
+        "binding",
+        "python",
+        "common",
+        "version.h.jinja2",
+    )
+
+    update_c_preserved_metadata_version(
         year,
         year_month,
         git_version,
@@ -333,12 +427,12 @@ def update_dependencies_version(
 
     # Collect manifest.json from all package directories.
     for root, dirs, files in os.walk(packages_dir_path, followlinks=True):
-        for dir in dirs:
+        for entry in dirs:
             manifests += __collect_manifest_files(
-                os.path.join(packages_dir_path, dir)
+                os.path.join(packages_dir_path, entry)
             )
             manifests += __collect_manifest_tent_files(
-                os.path.join(packages_dir_path, dir)
+                os.path.join(packages_dir_path, entry)
             )
 
         break
@@ -397,7 +491,7 @@ if __name__ == "__main__":
     log_level = 1
 
     update_c_preserved_metadata_version_of_ten_runtime_binary(
-        log_level, year, year_month, git_version, repo_base_dir
+        year, year_month, git_version, repo_base_dir
     )
 
     update_version_of_tman(

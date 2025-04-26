@@ -3,7 +3,8 @@
   "name": "default_async_extension_python",
   "version": "0.10.0",
   "tags": [
-    "python"
+    "python",
+    "template"
   ],
   "dependencies": [
     {

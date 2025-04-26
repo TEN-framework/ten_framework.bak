@@ -3,7 +3,8 @@
   "name": "default_extension_cpp",
   "version": "0.10.0",
   "tags": [
-    "cpp"
+    "cpp",
+    "template"
   ],
   "dependencies": [
     {

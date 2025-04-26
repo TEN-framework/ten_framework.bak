@@ -6,7 +6,9 @@
 //
 #include "include_internal/ten_runtime/common/preserved_metadata.h"
 
-static char metadata[] = "version=0.1.0";
+#include "include_internal/ten_runtime/binding/go/internal/version.h"
+
+static char metadata[] = "version=" TEN_RUNTIME_GO_BINDING_VERSION;
 
 void ten_preserved_metadata(void) {
   ((char volatile *)metadata)[0] = metadata[0];

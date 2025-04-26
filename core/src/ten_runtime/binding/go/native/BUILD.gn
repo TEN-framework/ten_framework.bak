@@ -13,8 +13,6 @@ ten_shared_library("ten_runtime_go") {
     remove_configs = [ "//.gnfiles/build/toolchain/common:disallow_undefined" ]
   }
 
-  sources = [ "//core/src/ten_runtime/binding/go/native/build_template/preserved_metadata.c" ]
-
   include_dirs = ten_runtime_common_includes
   include_dirs += [
     "//src",

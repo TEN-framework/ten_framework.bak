@@ -3,7 +3,8 @@
   "name": "default_app_nodejs",
   "version": "0.10.0",
   "tags": [
-    "nodejs"
+    "nodejs",
+    "template"
   ],
   "dependencies": [
     {

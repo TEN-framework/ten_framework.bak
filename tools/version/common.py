@@ -25,7 +25,7 @@ class PkgInfo:
 
 
 def touch(path):
-    with open(path, "a"):
+    with open(path, "a", encoding="utf-8"):
         try:
             os.utime(path, follow_symlinks=False)
         except Exception:
@@ -42,50 +42,32 @@ def get_latest_git_tag() -> str:
         ["git", "describe", "--tags", "--abbrev=0", "--always"],
         capture_output=True,
         text=True,
+        check=True,
     )
+
     if result.returncode != 0:
-        raise Exception("Failed to execute git command")
+        raise subprocess.SubprocessError("Failed to execute git command")
+
     return result.stdout.strip()
 
 
 def update_c_preserved_metadata_version(
-    log_level: int,
     year: str,
     year_month: str,
     version: str,
     src_path: str,
     template_path: str,
 ) -> None:
-    update_needed = False
+    with open(template_path, "r", encoding="utf-8") as file:
+        template_content = file.read()
 
-    if os.path.exists(src_path):
-        with open(src_path, "r", encoding="utf-8") as file:
-            content = file.read()
+    template = Template(template_content)
+    rendered_content = template.render(
+        VERSION=version, YEAR=year, YEAR_MONTH=year_month
+    )
 
-        if f"version={version}" not in content:
-            update_needed = True
-            if log_level > 0:
-                print(
-                    f"Version mismatch found. Updating version in {src_path}."
-                )
-    else:
-        update_needed = True
-
-    if update_needed:
-        with open(template_path, "r", encoding="utf-8") as file:
-            template_content = file.read()
-
-        template = Template(template_content)
-
-        rendered_content = template.render(
-            VERSION=version, YEAR=year, YEAR_MONTH=year_month
-        )
-
-        with open(src_path, "w", encoding="utf-8") as file:
-            file.write(rendered_content)
-    else:
-        if log_level > 0:
-            print(f"No update needed for {src_path}; versions match.")
+    with open(src_path, "w", encoding="utf-8") as file:
+        file.write(rendered_content)
 
 
 def update_version_in_manifest_json_file_for_pkgs(

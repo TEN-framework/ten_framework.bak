@@ -32,10 +32,7 @@ ten_shared_library("ten_runtime_nodejs") {
     ldflags = [ "-Wl,-rpath=\$ORIGIN/../../ten_runtime/lib" ]
   }
 
-  sources = [
-    "//core/src/ten_runtime/binding/nodejs/native/build_template/preserved_metadata.c",
-    "init.c",
-  ]
+  sources = [ "init.c" ]
 
   deps = [
     "addon",

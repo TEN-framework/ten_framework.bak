@@ -3,7 +3,8 @@
   "name": "default_app_python",
   "version": "0.10.0",
   "tags": [
-    "python"
+    "python",
+    "template"
   ],
   "dependencies": [
     {
