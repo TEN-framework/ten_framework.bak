@@ -10,12 +10,14 @@ config("ten_runtime_common_libs") {
   if (is_win) {
     libs = [
       "ten_runtime.dll.lib",
-      "ten_utils.dll.lib",
+      # If ten_utils is built as shared library, we need to link it here, too.
+      # "ten_utils.dll.lib"
     ]
   } else {
     libs = [
       "ten_runtime",
-      "ten_utils",
+      # If ten_utils is built as shared library, we need to link it here, too.
+      # "ten_utils",
     ]
   }
 }

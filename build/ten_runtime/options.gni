@@ -9,7 +9,7 @@ import("//build/options.gni")
 
 declare_args() {
   # If set, build TEN runtime as shared library, otherwise static library
-  ten_build_shared = true
+  ten_runtime_build_shared = true
 
   # If set, enable libwebsockets dependency, it will be used in http/websocket
   # client and protocol.

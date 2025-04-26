@@ -24,7 +24,7 @@ if (enable_sanitizer) {
 ten_target("ten_runtime_library") {
   output_name = "ten_runtime"
 
-  if (ten_build_shared) {
+  if (ten_runtime_build_shared) {
     type = "shared_library"
   } else {
     type = "static_library"

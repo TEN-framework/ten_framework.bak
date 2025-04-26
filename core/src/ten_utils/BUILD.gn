@@ -41,7 +41,6 @@ ten_utils_glob("ten_utils_files") {
 
 static_library("ten_utils_static") {
   deps = [ ":ten_utils_files" ]
-  complete_static_lib = true
   public_configs = [ "//build/ten_utils:utils_public_config" ]
   configs += [ "//build/ten_utils:utils_private_config" ]
 }
@@ -52,7 +51,6 @@ shared_library("ten_utils_shared") {
   deps = [ ":ten_utils_files" ]
   configs += [ "//build/ten_utils:utils_private_config" ]
 
-  public_deps = [ "//third_party/yyjson" ]
   public_configs = [ "//build/ten_utils:utils_public_config" ]
 
   if (is_mac) {
@@ -90,18 +88,20 @@ ten_utils_group("ten_utils") {
   if (ten_utils_build_shared) {
     public_deps = [ ":ten_utils_shared" ]
   } else {
-    public_deps = [ ":ten_utils_static" ]
+    public_deps = [ ":ten_utils_combined_static" ]
   }
 }
 
-# Although ten_utils_static uses 'complete_static_lib = true', this
-# functionality requires that all other dependencies bound to ten_utils_static
-# be managed by GN as source_set or static_library targets. However, yyjson and
-# libuv are managed by CMake, and GN only calls CMake through an action to
-# complete the compilation process. Therefore, it doesn't know which source
-# files are involved or which object files are generated. As a result,
-# 'complete_static_lib = true' has no effect, and the results of the CMake
-# projects need to be manually bound to the ten_utils_static library.
+# The complete_static_lib=true feature of a static_library target in GN is
+# intended to automatically include all other static library dependencies into
+# that static_library. This requires that every dependency be managed through GN
+# (for example, via source_set or other static_library declarations). Since
+# yyjson and libuv are built by CMake using our custom cmake action, GN cannot
+# automatically discover sufficient information about them (such as which source
+# files and object files are produced) to support complete_static_lib=true.
+# Therefore, we cannot automate this with complete_static_lib=true. Instead, we
+# use the custom combine_static_library below to manually merge all static
+# libraries that ten_utils_static depends on.
 combine_static_library("ten_utils_combined_static") {
   yyjson_static = filter_include(yyjson_output_libs,
                                  [
@@ -132,7 +132,7 @@ combine_static_library("ten_utils_combined_static") {
     libuv_static[0],
   ]
 
-  deps = [ ":ten_utils_static" ]
+  public_deps = [ ":ten_utils_static" ]
 
   if (ten_enable_ten_rust) {
     deps += [ "//core/src/ten_rust:asan_config" ]
