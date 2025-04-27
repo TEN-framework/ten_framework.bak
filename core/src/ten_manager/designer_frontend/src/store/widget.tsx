@@ -258,7 +258,6 @@ export const appendLogsById = (id: string, logs: string[]) => {
 
   if (!timer) {
     timer = setTimeout(() => {
-      console.log("appendLogsById ===> ", logBuffer);
       Object.entries(logBuffer).forEach(([id, log]) => {
         if (log.history.length > 0) {
           useWidgetStore.getState().appendLogViewerHistory(id, log.history);
