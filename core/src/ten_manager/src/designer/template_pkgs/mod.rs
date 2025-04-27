@@ -7,18 +7,18 @@
 use actix_web::{web, HttpResponse, Responder};
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 use strum_macros::{Display, EnumString};
 
 use ten_rust::pkg_info::pkg_type::PkgType;
 
 use crate::{
-    constants::{
-        DEFAULT_APP_CPP, DEFAULT_APP_GO, DEFAULT_APP_NODEJS,
-        DEFAULT_APP_PYTHON, DEFAULT_EXTENSION_CPP, DEFAULT_EXTENSION_GO,
-        DEFAULT_EXTENSION_NODEJS, DEFAULT_EXTENSION_PYTHON,
-    },
+    constants::{TAG_CPP, TAG_GO, TAG_NODEJS, TAG_PYTHON},
     designer::response::{ApiResponse, ErrorResponse, Status},
+    registry,
 };
+
+use super::DesignerState;
 
 #[derive(
     Deserialize, Serialize, Debug, EnumString, Display, Clone, PartialEq,
@@ -28,14 +28,14 @@ pub enum TemplateLanguage {
     #[serde(rename = "cpp")]
     Cpp,
 
-    #[serde(rename = "golang")]
-    Golang,
+    #[serde(rename = "go")]
+    Go,
 
     #[serde(rename = "python")]
     Python,
 
-    #[serde(rename = "typescript")]
-    TypeScript,
+    #[serde(rename = "nodejs")]
+    Nodejs,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -51,6 +51,7 @@ pub struct GetTemplateResponseData {
 
 pub async fn get_template_endpoint(
     request_payload: web::Json<GetTemplateRequestPayload>,
+    state: web::Data<Arc<DesignerState>>,
 ) -> Result<impl Responder, actix_web::Error> {
     let GetTemplateRequestPayload { pkg_type, language } =
         request_payload.into_inner();
@@ -58,43 +59,73 @@ pub async fn get_template_endpoint(
     // Clone the language for later use in error messages.
     let language_clone = language.clone();
 
-    // Generate template name based on package type and language.
-    let template_name = match (pkg_type, language) {
-        (PkgType::App, TemplateLanguage::Cpp) => DEFAULT_APP_CPP,
-        (PkgType::App, TemplateLanguage::Golang) => DEFAULT_APP_GO,
-        (PkgType::App, TemplateLanguage::Python) => DEFAULT_APP_PYTHON,
-        (PkgType::App, TemplateLanguage::TypeScript) => DEFAULT_APP_NODEJS,
-        (PkgType::Extension, TemplateLanguage::Cpp) => DEFAULT_EXTENSION_CPP,
-        (PkgType::Extension, TemplateLanguage::Golang) => DEFAULT_EXTENSION_GO,
-        (PkgType::Extension, TemplateLanguage::Python) => {
-            DEFAULT_EXTENSION_PYTHON
+    // Determine the tags based on the language.
+    let tags = match language {
+        TemplateLanguage::Cpp => Some(vec![TAG_CPP.to_string()]),
+        TemplateLanguage::Go => Some(vec![TAG_GO.to_string()]),
+        TemplateLanguage::Python => Some(vec![TAG_PYTHON.to_string()]),
+        TemplateLanguage::Nodejs => Some(vec![TAG_NODEJS.to_string()]),
+    };
+
+    // Create configuration and output for calling get_package_list.
+
+    // Call get_package_list with the specified parameters.
+    let result = registry::get_package_list(
+        state.tman_config.clone(),
+        Some(pkg_type),
+        None,               // name: None
+        None,               // version_req: None
+        tags,               // tags based on language
+        None,               // page_size: None
+        None,               // page: None
+        &state.out.clone(), // output
+    )
+    .await;
+
+    match result {
+        Ok(packages) => {
+            // Extract the package names from the PkgRegistryInfo structs.
+            let template_names: Vec<String> = packages
+                .iter()
+                .map(|pkg| pkg.basic_info.type_and_name.name.clone())
+                .collect();
+
+            // Handle case where no packages were found.
+            if template_names.is_empty() {
+                let error_message = format!(
+                    "Unsupported template combination: pkg_type={}, \
+                     language={}",
+                    pkg_type, language_clone
+                );
+
+                let error = anyhow!(error_message);
+                let error_response = ErrorResponse::from_error(
+                    &error,
+                    "Unsupported template combination",
+                );
+
+                return Ok(HttpResponse::BadRequest().json(error_response));
+            }
+
+            let response = ApiResponse {
+                status: Status::Ok,
+                data: GetTemplateResponseData { template_name: template_names },
+                meta: None,
+            };
+
+            Ok(HttpResponse::Ok().json(response))
         }
-        (PkgType::Extension, TemplateLanguage::TypeScript) => {
-            DEFAULT_EXTENSION_NODEJS
-        }
-        _ => {
+        Err(err) => {
             let error_message = format!(
-                "Unsupported template combination: pkg_type={}, language={}",
-                pkg_type, language_clone
+                "Failed to fetch templates: pkg_type={}, language={}, error={}",
+                pkg_type, language_clone, err
             );
 
             let error = anyhow!(error_message);
-            let error_response = ErrorResponse::from_error(
-                &error,
-                "Unsupported template combination",
-            );
+            let error_response =
+                ErrorResponse::from_error(&error, "Failed to fetch templates");
 
-            return Ok(HttpResponse::BadRequest().json(error_response));
+            Ok(HttpResponse::InternalServerError().json(error_response))
         }
-    };
-
-    let response = ApiResponse {
-        status: Status::Ok,
-        data: GetTemplateResponseData {
-            template_name: vec![template_name.to_string()],
-        },
-        meta: None,
-    };
-
-    Ok(HttpResponse::Ok().json(response))
+    }
 }
