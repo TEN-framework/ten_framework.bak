@@ -5,8 +5,10 @@
 // Refer to the "LICENSE" file in the root directory for more information.
 //
 pub mod registry;
+pub mod tag;
 
 pub use registry::*;
+pub use tag::*;
 
 pub const DOT_TEN_DIR: &str = ".ten";
 pub const APP_DIR_IN_DOT_TEN_DIR: &str = "app";

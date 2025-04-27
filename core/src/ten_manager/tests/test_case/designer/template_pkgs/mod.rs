@@ -46,7 +46,7 @@ async fn test_get_template_app_typescript() {
 
     let request_payload = GetTemplateRequestPayload {
         pkg_type: PkgType::App,
-        language: TemplateLanguage::TypeScript,
+        language: TemplateLanguage::Nodejs,
     };
 
     let req = test::TestRequest::post()
@@ -127,7 +127,7 @@ async fn test_get_template_unsupported() {
     // combination.
     let request_payload = GetTemplateRequestPayload {
         pkg_type: PkgType::Invalid,
-        language: TemplateLanguage::TypeScript,
+        language: TemplateLanguage::Nodejs,
     };
 
     let req = test::TestRequest::post()
