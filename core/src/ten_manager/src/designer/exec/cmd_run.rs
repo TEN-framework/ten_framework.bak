@@ -8,10 +8,18 @@ use std::{process::Command, thread};
 
 use actix::AsyncContext;
 use actix_web_actors::ws::WebsocketContext;
+use crossbeam_channel::{bounded, Sender};
 
 use crate::designer::exec::RunCmdOutput;
 
 use super::{msg::OutboundMsg, WsRunCmd};
+
+// Add this struct to store shutdown senders.
+pub struct ShutdownSenders {
+    pub stdout: Sender<()>,
+    pub stderr: Sender<()>,
+    pub wait: Sender<()>,
+}
 
 impl WsRunCmd {
     pub fn cmd_run(
@@ -19,6 +27,18 @@ impl WsRunCmd {
         cmd: &String,
         ctx: &mut WebsocketContext<WsRunCmd>,
     ) {
+        // Create shutdown channels for each thread.
+        let (stdout_shutdown_tx, stdout_shutdown_rx) = bounded::<()>(1);
+        let (stderr_shutdown_tx, stderr_shutdown_rx) = bounded::<()>(1);
+        let (wait_shutdown_tx, wait_shutdown_rx) = bounded::<()>(1);
+
+        // Store senders in the struct for later cleanup.
+        self.shutdown_senders = Some(ShutdownSenders {
+            stdout: stdout_shutdown_tx,
+            stderr: stderr_shutdown_tx,
+            wait: wait_shutdown_tx,
+        });
+
         let mut command = Command::new("sh");
         command
             .arg("-c")
@@ -61,12 +81,18 @@ impl WsRunCmd {
         // Read stdout.
         if let Some(mut out) = stdout_child {
             let addr_stdout = addr.clone();
+            let shutdown_rx = stdout_shutdown_rx;
 
             thread::spawn(move || {
                 use std::io::{BufRead, BufReader};
 
                 let reader = BufReader::new(&mut out);
                 for line_res in reader.lines() {
+                    // Check if we should terminate.
+                    if shutdown_rx.try_recv().is_ok() {
+                        break;
+                    }
+
                     match line_res {
                         Ok(line) => {
                             // `do_send` is used to asynchronously send messages
@@ -85,12 +111,18 @@ impl WsRunCmd {
         // Read stderr.
         if let Some(mut err) = stderr_child {
             let addr_stderr = addr.clone();
+            let shutdown_rx = stderr_shutdown_rx;
 
             thread::spawn(move || {
                 use std::io::{BufRead, BufReader};
 
                 let reader = BufReader::new(&mut err);
                 for line_res in reader.lines() {
+                    // Check if we should terminate.
+                    if shutdown_rx.try_recv().is_ok() {
+                        break;
+                    }
+
                     match line_res {
                         Ok(line) => {
                             addr_stderr.do_send(RunCmdOutput::StdErr(line));
@@ -105,15 +137,46 @@ impl WsRunCmd {
         // Wait for child exit in another thread.
         let addr2 = ctx.address();
         if let Some(mut child) = self.child.take() {
+            let shutdown_rx = wait_shutdown_rx;
+
             thread::spawn(move || {
-                if let Ok(status) = child.wait() {
-                    addr2.do_send(RunCmdOutput::Exit(
-                        status.code().unwrap_or(-1),
-                    ));
+                let exit_status = crossbeam_channel::select! {
+                    recv(shutdown_rx) -> _ => {
+                        // Termination requested, kill the process.
+                        let _ = child.kill();
+                        let _ = child.wait();
+                        None
+                    },
+                    default => {
+                        // Normal wait path.
+                        match child.wait() {
+                            Ok(status) => Some(status.code().unwrap_or(-1)),
+                            Err(_) => None,
+                        }
+                    }
+                };
+
+                if let Some(code) = exit_status {
+                    addr2.do_send(RunCmdOutput::Exit(code));
                 } else {
                     addr2.do_send(RunCmdOutput::Exit(-1));
                 }
             });
+        }
+    }
+
+    // Call this when the actor is stopping or websocket is closing.
+    pub fn cleanup_threads(&mut self) {
+        // Signal all threads to terminate.
+        if let Some(senders) = self.shutdown_senders.take() {
+            let _ = senders.stdout.send(());
+            let _ = senders.stderr.send(());
+            let _ = senders.wait.send(());
+        }
+
+        // Force kill child process if it exists.
+        if let Some(mut child) = self.child.take() {
+            let _ = child.kill();
         }
     }
 }

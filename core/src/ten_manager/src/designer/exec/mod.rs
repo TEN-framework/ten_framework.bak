@@ -16,12 +16,12 @@ use actix_web::{web, Error, HttpRequest, HttpResponse};
 use actix_web_actors::ws;
 use anyhow::Context;
 use anyhow::Result;
-use msg::InboundMsg;
-use run_script::extract_command_from_manifest;
 
 use crate::designer::DesignerState;
-
+use cmd_run::ShutdownSenders;
+use msg::InboundMsg;
 use msg::OutboundMsg;
+use run_script::extract_command_from_manifest;
 
 // The output (stdout, stderr) and exit status from the child process.
 #[derive(Message)]
@@ -51,11 +51,17 @@ pub struct WsRunCmd {
     child: Option<Child>,
     cmd_parser: CmdParser,
     working_directory: Option<String>,
+    shutdown_senders: Option<ShutdownSenders>,
 }
 
 impl WsRunCmd {
     pub fn new(cmd_parser: CmdParser) -> Self {
-        Self { child: None, cmd_parser, working_directory: None }
+        Self {
+            child: None,
+            cmd_parser,
+            working_directory: None,
+            shutdown_senders: None,
+        }
     }
 }
 
@@ -71,10 +77,8 @@ impl Actor for WsRunCmd {
     }
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {
-        // If the process is still running, try to kill it.
-        if let Some(mut child) = self.child.take() {
-            let _ = child.kill();
-        }
+        // Call our new cleanup method to properly terminate all threads.
+        self.cleanup_threads();
     }
 }
 

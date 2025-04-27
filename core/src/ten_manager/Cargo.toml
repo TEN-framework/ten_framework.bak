@@ -68,6 +68,7 @@ zip = { version = "2.2", default-features = false, features = [
   "deflate",
   "time",
 ] }
+crossbeam-channel = "0.5.15"
 
 [target."cfg(unix)".dependencies]
 mimalloc = "0.1"
