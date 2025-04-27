@@ -64,7 +64,7 @@ export const LogViewerPopupContent = (props: { widget: ILogViewerWidget }) => {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [backstageWidgets, widget.metadata.scriptType, widget.metadata.script]);
+  }, [widget.metadata.scriptType, widget.metadata.script]);
 
   return (
     <LogViewerFrontStageWidget

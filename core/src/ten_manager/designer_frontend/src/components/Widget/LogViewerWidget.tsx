@@ -12,7 +12,7 @@ import AutoSizer from "react-virtualized-auto-sizer";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
-import { useWidgetStore } from "@/store/widget";
+import { useWidgetStore, appendLogsById } from "@/store/widget";
 import { ILogViewerWidget, ILogViewerWidgetOptions } from "@/types/widgets";
 import { EWSMessageType } from "@/types/apps";
 
@@ -21,8 +21,6 @@ export function LogViewerBackstageWidget(props: ILogViewerWidget) {
     widget_id: id,
     metadata: { wsUrl, scriptType, script, postActions } = {},
   } = props;
-
-  const { appendLogViewerHistory } = useWidgetStore();
 
   const wsRef = React.useRef<WebSocket | null>(null);
 
@@ -47,32 +45,28 @@ export function LogViewerBackstageWidget(props: ILogViewerWidget) {
           msg.type === EWSMessageType.STANDARD_ERROR
         ) {
           const line = msg.data;
-          appendLogViewerHistory(id, [line]);
+          appendLogsById(id, [line]);
         } else if (msg.type === EWSMessageType.NORMAL_LINE) {
           const line = msg.data;
-          appendLogViewerHistory(id, [line]);
+          appendLogsById(id, [line]);
         } else if (msg.type === EWSMessageType.EXIT) {
           const code = msg.code;
           const errMsg = msg?.error_message;
-          appendLogViewerHistory(id, [
+          appendLogsById(id, [
             errMsg,
             `Process exited with code ${code}. Closing...`,
           ]);
 
           wsRef.current?.close();
         } else if (msg.status === "fail") {
-          appendLogViewerHistory(id, [
-            `Error: ${msg.message || "Unknown error"}\n`,
-          ]);
+          appendLogsById(id, [`Error: ${msg.message || "Unknown error"}\n`]);
         } else {
-          appendLogViewerHistory(id, [
-            `Unknown message: ${JSON.stringify(msg)}`,
-          ]);
+          appendLogsById(id, [`Unknown message: ${JSON.stringify(msg)}`]);
         }
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (err) {
         // If it's not JSON, output it directly as text.
-        appendLogViewerHistory(id, [event.data]);
+        appendLogsById(id, [event.data]);
       }
     };
 

@@ -239,3 +239,32 @@ export const useWidgetStore = create<{
     }) => set((state) => ({ extFilter: { ...state.extFilter, ...filter } })),
   }))
 );
+
+const logBuffer: {
+  [id: string]: {
+    history: string[];
+  };
+} = {};
+let timer: null | NodeJS.Timeout = null;
+
+// debounced function to append logs
+// to the logViewerHistory in the store
+export const appendLogsById = (id: string, logs: string[]) => {
+  if (!logBuffer[id]) {
+    logBuffer[id] = { history: logs };
+  } else {
+    logBuffer[id].history.push(...logs);
+  }
+
+  if (!timer) {
+    timer = setTimeout(() => {
+      Object.entries(logBuffer).forEach(([id, log]) => {
+        if (log.history.length > 0) {
+          useWidgetStore.getState().appendLogViewerHistory(id, log.history);
+        }
+        logBuffer[id].history = [];
+      });
+      timer = null;
+    }, 100); // Adjust the time interval as needed
+  }
+};
