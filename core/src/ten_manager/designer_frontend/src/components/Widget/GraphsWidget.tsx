@@ -610,8 +610,6 @@ export const GraphAddConnectionWidget = (props: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [srcExtension, destExtension, msgType, nodes]);
 
-  console.log("isMsgNameLoading ===", isMsgNameLoading);
-
   return (
     <Form {...form}>
       <form
