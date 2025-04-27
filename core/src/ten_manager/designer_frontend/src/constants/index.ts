@@ -41,4 +41,4 @@ export const TEN_FRAMEWORK_GH_OWNER = "Ten-framework";
 export const TEN_FRAMEWORK_GH_REPO = "ten-framework";
 
 // --- Doc
-export const TEN_DOC_URL = "https://doc.theten.ai/";
+export const TEN_DOC_URL = "https://theten.ai/";
