@@ -47,7 +47,6 @@ export const LogViewerPopupContent = (props: { widget: ILogViewerWidget }) => {
       widget.metadata.scriptType &&
       widget.metadata.script
     ) {
-      console.log("appendBackstageWidgetIfNotExists === ");
       appendBackstageWidgetIfNotExists({
         container_id: CONTAINER_DEFAULT_ID,
         group_id: GROUP_LOG_VIEWER_ID,
