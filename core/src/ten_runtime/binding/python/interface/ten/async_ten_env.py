@@ -165,7 +165,7 @@ class AsyncTenEnv(TenEnvBase):
 
     async def set_property_from_json(self, path: str, json_str: str) -> None:
         q = asyncio.Queue(maxsize=1)
-        self._internal.set_property_string_async(
+        self._internal.set_property_from_json_async(
             path,
             json_str,
             lambda error: self._error_handler(error, q),

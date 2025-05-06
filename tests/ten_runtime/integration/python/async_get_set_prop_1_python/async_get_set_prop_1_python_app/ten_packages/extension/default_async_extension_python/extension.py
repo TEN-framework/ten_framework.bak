@@ -5,6 +5,7 @@
 # Refer to the "LICENSE" file in the root directory for more information.
 #
 import asyncio
+import json
 from ten import (
     AsyncExtension,
     AsyncTenEnv,
@@ -23,7 +24,7 @@ class DefaultAsyncExtension(AsyncExtension):
         await ten_env.set_property_int("int_field", 1)
         await ten_env.set_property_float("float_field", 1.0)
         await ten_env.set_property_string("string_field", "hello")
-        await ten_env.set_property_from_json("json_field", '"testValue2"')
+        await ten_env.set_property_from_json("json_field", '{"testKey": "testValue2"}')
 
     async def on_start(self, ten_env: AsyncTenEnv) -> None:
         await asyncio.sleep(0.5)
@@ -45,7 +46,9 @@ class DefaultAsyncExtension(AsyncExtension):
         assert string_field == "hello"
 
         json_field = await ten_env.get_property_to_json("json_field")
-        assert json_field == '"\\"testValue2\\""'
+        # Parse the JSON string to a dictionary and compare the values.
+        json_field_dict = json.loads(json_field)
+        assert json_field_dict["testKey"] == "testValue2"
 
         error_occurred = False
 
