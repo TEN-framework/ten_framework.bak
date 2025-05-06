@@ -1,0 +1,18 @@
+{
+  "type": "extension",
+  "name": "default_extension_go",
+  "version": "0.8.18",
+  "dependencies": [
+    {
+      "type": "system",
+      "name": "ten_runtime_go",
+      "version": "0.8.18"
+    }
+  ],
+  "package": {
+    "include": [
+      "**"
+    ]
+  },
+  "api": {}
+}
