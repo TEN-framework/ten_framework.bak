@@ -10,6 +10,7 @@ package default_extension_go
 
 import (
 	"ten_framework/ten"
+	"time"
 )
 
 type graphStarterExtension struct {
@@ -34,25 +35,28 @@ func (ext *graphStarterExtension) OnCmd(tenEnv ten.TenEnv, cmd ten.Cmd) {
         	]
 		}`
 
-		graphJsonBytes := []byte(graphJson)
-		startGraphCmd.SetGraphFromJSONBytes(graphJsonBytes)
+		// Switch to a new goroutine to simulate creating startGraph cmd on
+		// another thread.
+		go func() {
+			graphJsonBytes := []byte(graphJson)
+			startGraphCmd.SetGraphFromJSONBytes(graphJsonBytes)
 
-		startGraphCmd.SetDest("localhost", "", "", "")
+			startGraphCmd.SetDest("localhost", "", "", "")
+			tenEnv.SendCmd(startGraphCmd, func(tenEnv ten.TenEnv, cr ten.CmdResult, err error) {
+				if err != nil {
+					panic("Failed to start graph: " + err.Error())
+				}
 
-		tenEnv.SendCmd(startGraphCmd, func(tenEnv ten.TenEnv, cr ten.CmdResult, err error) {
-			if err != nil {
-				panic("Failed to start graph: " + err.Error())
-			}
+				statusCode, _ := cr.GetStatusCode()
+				if statusCode != ten.StatusCodeOk {
+					panic("Failed to start graph")
+				}
 
-			statusCode, _ := cr.GetStatusCode()
-			if statusCode != ten.StatusCodeOk {
-				panic("Failed to start graph")
-			}
-
-			cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk)
-			cmdResult.SetPropertyString("detail", "ok")
-			tenEnv.ReturnResult(cmdResult, cmd, nil)
-		})
+				cmdResult, _ := ten.NewCmdResult(ten.StatusCodeOk)
+				cmdResult.SetPropertyString("detail", "ok")
+				tenEnv.ReturnResult(cmdResult, cmd, nil)
+			})
+		}()
 	} else {
 		panic("unknown cmd name: " + name)
 	}
