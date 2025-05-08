@@ -10,7 +10,6 @@ package default_extension_go
 
 import (
 	"ten_framework/ten"
-	"time"
 )
 
 type graphStarterExtension struct {
