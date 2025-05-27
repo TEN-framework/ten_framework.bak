@@ -50,6 +50,12 @@
                           __FILE__, __LINE__, __VA_ARGS__);               \
   } while (0)
 
+#define TEN_LOGM(...)                                                     \
+  do {                                                                    \
+    ten_log_log_formatted(&ten_global_log, TEN_LOG_LEVEL_MANDATORY, __func__, \
+                          __FILE__, __LINE__, __VA_ARGS__);               \
+  } while (0)
+
 #define TEN_LOGV_AUX(log, ...)                                            \
   do {                                                                    \
     ten_log_log_formatted(log, TEN_LOG_LEVEL_VERBOSE, __func__, __FILE__, \
@@ -86,6 +92,12 @@
                           __LINE__, __VA_ARGS__);                       \
   } while (0)
 
+#define TEN_LOGM_AUX(log, ...)                                          \
+  do {                                                                  \
+    ten_log_log_formatted(log, TEN_LOG_LEVEL_MANDATORY, __func__, __FILE__, \
+                          __LINE__, __VA_ARGS__);                       \
+  } while (0)
+
 typedef enum TEN_LOG_LEVEL {
   TEN_LOG_LEVEL_INVALID,
 
@@ -95,6 +107,8 @@ typedef enum TEN_LOG_LEVEL {
   TEN_LOG_LEVEL_WARN,
   TEN_LOG_LEVEL_ERROR,
   TEN_LOG_LEVEL_FATAL,
+
+  TEN_LOG_LEVEL_MANDATORY
 } TEN_LOG_LEVEL;
 
 typedef struct ten_string_t ten_string_t;
