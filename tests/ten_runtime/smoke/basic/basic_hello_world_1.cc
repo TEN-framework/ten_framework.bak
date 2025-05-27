@@ -25,15 +25,11 @@ class test_extension : public ten::extension_t {
                       (std::string("on_cmd ") + cmd->get_name()).c_str());
 
     if (cmd->get_name() == "hello_world") {
-      *ptr_ = 1;
       auto cmd_result = ten::cmd_result_t::create(TEN_STATUS_CODE_OK);
       cmd_result->set_property("detail", "hello world, too");
       ten_env.return_result(std::move(cmd_result), std::move(cmd));
     }
   }
-
-  private:
-    int* ptr_ = nullptr;
 };
 
 class test_app : public ten::app_t {
