@@ -191,6 +191,9 @@ bool ten_app_start_predefined_graph(
 
   predefined_graph_info->engine = ten_app_create_engine(self, start_graph_cmd);
 
+  ten_engine_set_graph_name(predefined_graph_info->engine,
+                            ten_string_get_raw_str(&predefined_graph_info->name));
+
   // There is no 'connection' when creating predefined graph, so it's always no
   // migration in this stage. Send the 'start_graph_cmd' into the newly created
   // engine directly.

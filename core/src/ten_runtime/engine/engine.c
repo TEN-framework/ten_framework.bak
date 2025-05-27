@@ -94,6 +94,7 @@ void ten_engine_destroy(ten_engine_t *self) {
     self->cmd_stop_graph = NULL;
   }
 
+  ten_string_deinit(&self->graph_name);
   ten_string_deinit(&self->graph_id);
 
   ten_path_table_destroy(self->path_table);
@@ -219,6 +220,7 @@ ten_engine_t *ten_engine_create(ten_app_t *app, ten_shared_ptr_t *cmd) {
     }
   }
 
+  ten_string_init(&self->graph_name);
   ten_engine_set_graph_id(self, cmd);
 
   ten_engine_init_individual_eventloop_relevant_vars(self, app);
@@ -254,4 +256,12 @@ const char *ten_engine_get_id(ten_engine_t *self, bool check_thread) {
              "Should not happen.");
 
   return ten_string_get_raw_str(&self->graph_id);
+}
+
+void ten_engine_set_graph_name(ten_engine_t *self, const char *name) {
+  TEN_ASSERT(self, "Should not happen.");
+  TEN_ASSERT(ten_engine_check_integrity(self, false), "Should not happen.");
+  TEN_ASSERT(name, "Should not happen.");
+
+  ten_string_set_from_c_str(&self->graph_name, name);
 }

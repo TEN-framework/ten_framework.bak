@@ -14,12 +14,12 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 extern "C" {
 #endif
 
 TEN_UTILS_API void ten_backtrace_dump_global(size_t skip);
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 } /* End extern "C".  */
 #endif

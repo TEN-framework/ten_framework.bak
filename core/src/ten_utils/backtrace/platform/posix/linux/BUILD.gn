@@ -7,7 +7,5 @@
 import("//build/ten_utils/utils.gni")
 
 ten_utils_glob("linux") {
-  if (is_linux) {
-    deps = [ "pc" ]
-  }
+  deps = [ "elf_internal" ]
 }

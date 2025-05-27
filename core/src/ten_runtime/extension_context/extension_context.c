@@ -12,6 +12,7 @@
 #include "include_internal/ten_runtime/addon/addon.h"
 #include "include_internal/ten_runtime/addon/addon_host.h"
 #include "include_internal/ten_runtime/addon/extension_group/extension_group.h"
+#include "include_internal/ten_runtime/app/base_dir.h"
 #include "include_internal/ten_runtime/app/app.h"
 #include "include_internal/ten_runtime/common/constant_str.h"
 #include "include_internal/ten_runtime/common/loc.h"
@@ -407,6 +408,47 @@ static void destroy_extension_group_by_addon(
       ten_extension_context_on_extension_group_destroyed, NULL);
 }
 
+static void ten_extension_context_log_graph_resources(
+    ten_extension_context_t *self) {
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_extension_context_check_integrity(self, true),
+             "Invalid use of extension_context %p.", self);
+
+  // Get the required information.
+  const char *app_base_dir = ten_app_get_base_dir(self->engine->app);
+  const char *app_uri = ten_app_get_uri(self->engine->app);
+  const char *graph_id = ten_engine_get_id(self->engine, true);
+  const char *graph_name = ten_string_get_raw_str(&self->engine->graph_name);
+
+  // Log the complete JSON in a single call.
+  ten_string_t log_json;
+  ten_string_init(&log_json);
+
+  // Always add app_base_dir
+  ten_string_append_formatted(&log_json, "\"app_base_dir\": \"%s\"",
+                              app_base_dir);
+
+  // Conditionally add app_uri if it exists and is not empty
+  if (app_uri != NULL && app_uri[0] != '\0') {
+    ten_string_append_formatted(&log_json, ", \"app_uri\": \"%s\"", app_uri);
+  }
+
+  // Conditionally add graph name if it exists and is not empty
+  if (graph_name != NULL && graph_name[0] != '\0') {
+    ten_string_append_formatted(&log_json, ", \"graph_name\": \"%s\"",
+                                graph_name);
+  }
+
+  // Always add graph id and extension_threads.
+  ten_string_append_formatted(&log_json, ", \"graph_id\": \"%s\"", graph_id);
+
+  // Log the complete JSON.
+  TEN_LOGM("[graph resources] {%s}", ten_string_get_raw_str(&log_json));
+
+  // Clean up.
+  ten_string_deinit(&log_json);
+}
+
 static void ten_extension_context_create_extension_group_done(
     ten_env_t *ten_env, ten_extension_group_t *extension_group) {
   TEN_ASSERT(extension_group &&
@@ -510,6 +552,8 @@ static void ten_extension_context_create_extension_group_done(
             extension_context, ten_app_get_uri(extension_context->engine->app),
             ten_extension_group_get_name(extension_group, true));
     TEN_ASSERT(extension_group->extension_group_info, "Should not happen.");
+
+    ten_extension_context_log_graph_resources(extension_context);
 
     ten_extension_context_start(extension_context);
   }

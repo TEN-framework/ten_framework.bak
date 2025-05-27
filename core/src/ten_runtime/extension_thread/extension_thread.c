@@ -11,6 +11,7 @@
 #include <stdlib.h>
 
 #include "include_internal/ten_runtime/app/app.h"
+#include "include_internal/ten_runtime/app/base_dir.h"
 #include "include_internal/ten_runtime/common/loc.h"
 #include "include_internal/ten_runtime/engine/engine.h"
 #include "include_internal/ten_runtime/engine/internal/thread.h"
@@ -87,6 +88,7 @@ ten_extension_thread_t *ten_extension_thread_create(void) {
   ten_signature_set(&self->signature,
                     (ten_signature_t)TEN_EXTENSION_THREAD_SIGNATURE);
 
+  self->tid = 0;
   self->state = TEN_EXTENSION_THREAD_STATE_INIT;
   self->is_close_triggered = false;
 
@@ -252,6 +254,7 @@ void *ten_extension_thread_main_actual(ten_extension_thread_t *self) {
              "Should not happen.");
 
   ten_extension_thread_inherit_thread_ownership(self);
+  self->tid = ten_thread_get_id(NULL);
 
   // The runloop should be created in its own thread.
   self->runloop = ten_runloop_create(NULL);
@@ -623,6 +626,91 @@ ten_engine_find_extension_info_for_all_extensions_of_extension_thread(
   }
 }
 
+static void ten_extension_thread_log_graph_resources(
+    ten_extension_thread_t *self) {
+  TEN_ASSERT(self, "Invalid argument.");
+  TEN_ASSERT(ten_extension_thread_check_integrity(self, true),
+             "Invalid use of extension_thread %p.", self);
+
+  // Get the required information.
+  const char *app_base_dir =
+      ten_app_get_base_dir(self->extension_context->engine->app);
+  const char *app_uri = ten_app_get_uri(self->extension_context->engine->app);
+  const char *graph_id =
+      ten_engine_get_id(self->extension_context->engine, false);
+  const char *graph_name =
+      ten_string_get_raw_str(&self->extension_context->engine->graph_name);
+
+  // Build extension thread entry.
+  ten_string_t extension_threads_json;
+  ten_string_init(&extension_threads_json);
+
+  // Extensions by thread ID
+  ten_string_t thread_entry;
+  ten_string_init(&thread_entry);
+  ten_string_t extensions_array;
+  ten_string_init(&extensions_array);
+
+  bool first_extension = true;
+
+  ten_list_foreach (&self->extensions, iter) {
+    ten_extension_t *extension = ten_ptr_listnode_get(iter.node);
+    TEN_ASSERT(extension, "Should not happen.");
+    TEN_ASSERT(ten_extension_check_integrity(extension, true),
+               "Invalid use of extension %p.", extension);
+
+    // Add comma for all but the first extension.
+    if (!first_extension) {
+      ten_string_append_formatted(&extensions_array, "%s", ", ");
+    }
+    first_extension = false;
+
+    // Add extension name to the array
+    ten_string_append_formatted(&extensions_array, "\"%s\"",
+                                ten_extension_get_name(extension, true));
+  }
+
+  ten_string_append_formatted(&thread_entry, "\"%lld\": {\"extensions\": [%s]}",
+                              (long long)self->tid,
+                              ten_string_get_raw_str(&extensions_array));
+
+  ten_string_append_formatted(&extension_threads_json, "%s",
+                              ten_string_get_raw_str(&thread_entry));
+
+  // Log the complete JSON in a single call.
+  ten_string_t log_json;
+  ten_string_init(&log_json);
+
+  // Always add app_base_dir
+  ten_string_append_formatted(&log_json, "\"app_base_dir\": \"%s\"",
+                              app_base_dir);
+
+  // Conditionally add app_uri if it exists and is not empty
+  if (app_uri != NULL && app_uri[0] != '\0') {
+    ten_string_append_formatted(&log_json, ", \"app_uri\": \"%s\"", app_uri);
+  }
+
+  // Conditionally add graph name if it exists and is not empty
+  if (graph_name != NULL && graph_name[0] != '\0') {
+    ten_string_append_formatted(&log_json, ", \"graph_name\": \"%s\"",
+                                graph_name);
+  }
+
+  // Always add graph id and extension_threads.
+  ten_string_append_formatted(
+      &log_json, ", \"graph_id\": \"%s\", \"extension_threads\": {%s}",
+      graph_id, ten_string_get_raw_str(&extension_threads_json));
+
+  // Log the complete JSON
+  TEN_LOGM("[graph resources] {%s}", ten_string_get_raw_str(&log_json));
+
+  // Clean up.
+  ten_string_deinit(&log_json);
+  ten_string_deinit(&thread_entry);
+  ten_string_deinit(&extensions_array);
+  ten_string_deinit(&extension_threads_json);
+}
+
 void ten_extension_thread_add_all_created_extensions(
     ten_extension_thread_t *self) {
   TEN_ASSERT(self, "Invalid argument.");
@@ -653,6 +741,8 @@ void ten_extension_thread_add_all_created_extensions(
 
     ten_extension_thread_add_extension(self, extension);
   }
+
+  ten_extension_thread_log_graph_resources(self);
 
   // Notify the engine to handle those newly created extensions.
 

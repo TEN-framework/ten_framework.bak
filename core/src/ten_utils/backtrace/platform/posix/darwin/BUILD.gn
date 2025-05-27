@@ -7,7 +7,4 @@
 import("//build/ten_utils/utils.gni")
 
 ten_utils_glob("darwin") {
-  if (is_mac) {
-    deps = [ "pc" ]
-  }
 }

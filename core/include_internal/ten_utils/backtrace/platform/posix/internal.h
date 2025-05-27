@@ -23,19 +23,24 @@
 #define unlikely(x) __builtin_expect(!!(x), 0)
 #endif
 
+typedef struct dwarf_sections dwarf_sections;
+typedef struct dwarf_data dwarf_data;
+
 /**
  * @brief The type of the function that collects file/line information.
  */
-typedef int (*ten_backtrace_get_file_line_func_t)(
-    ten_backtrace_t *self, uintptr_t pc, ten_backtrace_dump_file_line_func_t cb,
-    ten_backtrace_error_func_t error_cb, void *data);
+typedef int (*ten_backtrace_on_get_file_line_func_t)(
+    ten_backtrace_t *self, uintptr_t pc,
+    ten_backtrace_on_dump_file_line_func_t on_dump_file_line,
+    ten_backtrace_on_error_func_t on_error, void *data);
 
 /**
  * @brief The type of the function that collects symbol information.
  */
-typedef void (*ten_ten_backtrace_get_syminfo_func_t)(
-    ten_backtrace_t *self, uintptr_t pc, ten_backtrace_dump_syminfo_func_t cb,
-    ten_backtrace_error_func_t error_cb, void *data);
+typedef void (*ten_backtrace_on_get_syminfo_func_t)(
+    ten_backtrace_t *self, uintptr_t pc,
+    ten_backtrace_on_dump_syminfo_func_t on_dump_syminfo,
+    ten_backtrace_on_error_func_t on_error, void *data);
 
 /**
  * @brief The posix specific ten_backtrace_t implementation.
@@ -44,38 +49,35 @@ typedef struct ten_backtrace_posix_t {
   ten_backtrace_common_t common;
 
   // The function that returns file/line information.
-  ten_backtrace_get_file_line_func_t get_file_line;
-  // The data to pass to 'file_line_fn'.
-  void *get_file_line_data;
+  ten_backtrace_on_get_file_line_func_t on_get_file_line;
+  // The data to pass to 'on_get_file_line'.
+  void *on_get_file_line_data;
 
   // The function that returns symbol information.
-  ten_ten_backtrace_get_syminfo_func_t get_syminfo;
-  // The data to pass to 'syminfo_fn'.
-  void *get_syminfo_data;
+  ten_backtrace_on_get_syminfo_func_t on_get_syminfo;
+  // The data to pass to 'on_get_syminfo'.
+  void *on_get_syminfo_data;
 
   // Whether initializing the file/line information failed.
   ten_atomic_t file_line_init_failed;
 } ten_backtrace_posix_t;
 
-TEN_UTILS_PRIVATE_API int ten_backtrace_dump_posix(ten_backtrace_t *self,
-                                                   size_t skip);
+TEN_UTILS_PRIVATE_API int ten_backtrace_dump_using_libgcc(ten_backtrace_t *self,
+                                                          size_t skip);
 
-/**
- * @brief Sort without using memory.
- */
-TEN_UTILS_PRIVATE_API void backtrace_qsort(void *base, size_t count,
-                                           size_t size,
-                                           int (*compar)(const void *,
-                                                         const void *));
+TEN_UTILS_PRIVATE_API int ten_backtrace_dump_using_glibc(ten_backtrace_t *self,
+                                                          size_t skip);
 
 /**
  * @brief Read initial debug data from a descriptor, and set the the following
  * fields of @a self.
+ * - get_file_line_func
  * - get_file_line_data
- * - get_syminfo
+ * - get_syminfo_func
  * - get_syminfo_data
  *
- * @param get_file_line The value of the get_file_line field of @a self.
+ * @param on_get_file_line The value of the on_get_file_line field of @a
+ * self.
  * @return 1 on success, 0 on error.
  *
  * @note This function is called after the descriptor has first been opened.
@@ -83,65 +85,48 @@ TEN_UTILS_PRIVATE_API void backtrace_qsort(void *base, size_t count,
  */
 TEN_UTILS_PRIVATE_API int ten_backtrace_init_posix(
     ten_backtrace_t *self, const char *filename, int descriptor,
-    ten_backtrace_error_func_t error_cb, void *data,
-    ten_backtrace_get_file_line_func_t *get_file_line);
-
-/**
- * @brief An enum for the DWARF sections we care about.
- */
-typedef enum dwarf_section {
-  DEBUG_INFO,
-  DEBUG_LINE,
-  DEBUG_ABBREV,
-  DEBUG_RANGES,
-  DEBUG_STR,
-  DEBUG_ADDR,
-  DEBUG_STR_OFFSETS,
-  DEBUG_LINE_STR,
-  DEBUG_RNGLISTS,
-
-  DEBUG_MAX
-} dwarf_section;
-
-// Data for the DWARF sections we care about.
-typedef struct dwarf_sections {
-  const unsigned char *data[DEBUG_MAX];
-  size_t size[DEBUG_MAX];
-} dwarf_sections;
-
-// DWARF data read from a file, used for .gnu_debugaltlink.
-struct dwarf_data;
+    ten_backtrace_on_error_func_t on_error, void *data,
+    ten_backtrace_on_get_file_line_func_t *on_get_file_line);
 
 /**
  * @brief Add file/line information for a DWARF module.
  */
 TEN_UTILS_PRIVATE_API int backtrace_dwarf_add(
     ten_backtrace_t *self, uintptr_t base_address,
-    const struct dwarf_sections *dwarf_sections, int is_bigendian,
-    struct dwarf_data *fileline_altlink, ten_backtrace_error_func_t error_cb,
-    void *data, ten_backtrace_get_file_line_func_t *fileline_fn,
-    struct dwarf_data **fileline_entry);
-
-// A data structure to pass to backtrace_syminfo_to_full.
-struct backtrace_call_full {
-  ten_backtrace_dump_file_line_func_t dump_file_line_cb;
-  ten_backtrace_error_func_t error_cb;
-  void *data;
-  int ret;
-};
+    const dwarf_sections *dwarf_sections, int is_bigendian,
+    dwarf_data *fileline_altlink, ten_backtrace_on_error_func_t on_error,
+    void *data, ten_backtrace_on_get_file_line_func_t *on_get_file_line,
+    dwarf_data **fileline_entry);
 
 /**
- * @brief A ten_backtrace_dump_syminfo_func_t that can call into a
- * ten_backtrace_dump_file_line_func_t, used when we have a symbol table but no
- * debug info.
+ * @brief A data structure used to adapt symbol information callbacks to
+ * file/line callbacks.
+ *
+ * This structure is used as an adapter when we have symbol information but no
+ * debug information. It allows us to convert symbol lookup results into
+ * file/line format by storing both the original file/line callback and its
+ * associated data.
+ *
+ * It's primarily used in functions like `elf_nodebug()` to bridge between the
+ * symbol lookup interface and the file/line interface that callers expect.
+ *
+ * @param on_dump_file_line The callback function to report file/line
+ * information.
+ * @param on_error The callback function to report errors.
+ * @param data User data to pass to the callbacks.
+ * @param ret Return value indicating whether symbol information was found (1)
+ * or not (0).
  */
-TEN_UTILS_PRIVATE_API void backtrace_dump_syminfo_to_dump_file_line_cb(
+typedef struct backtrace_call_full {
+  ten_backtrace_on_dump_file_line_func_t on_dump_file_line;
+  ten_backtrace_on_error_func_t on_error;
+  void *data;
+  int ret;
+} backtrace_call_full;
+
+TEN_UTILS_PRIVATE_API void backtrace_dump_syminfo_to_file_line(
     ten_backtrace_t *self, uintptr_t pc, const char *symname,
     TEN_UNUSED uintptr_t sym_val, TEN_UNUSED uintptr_t sym_size, void *data);
 
-/**
- * @brief An error callback that corresponds to
- * backtrace_dump_syminfo_to_dump_file_line.
- */
-TEN_UTILS_PRIVATE_API void backtrace_dump_syminfo_to_dump_file_line_error_cb(
+TEN_UTILS_PRIVATE_API void backtrace_dump_syminfo_to_file_line_error(
     ten_backtrace_t *self, const char *msg, int errnum, void *data);
