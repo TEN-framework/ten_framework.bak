@@ -170,7 +170,7 @@ jobs:
             ten_packages/addon_loader/python_addon_loader
 
       - name: Publish to release assets
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v2.2.2
         if: matrix.arch == 'x64' && startsWith(github.ref, 'refs/tags/')
         with:
           files: |

@@ -113,7 +113,7 @@ jobs:
           Compress-Archive -Path app/default_app_cpp, ten_packages/system/ten_runtime, ten_packages/extension/default_extension_cpp -DestinationPath ten_packages-win-${{ matrix.build_type }}-x64.zip -CompressionLevel Optimal
 
       - name: Publish to release assets
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v2.2.2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
