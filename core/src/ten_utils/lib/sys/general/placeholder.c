@@ -86,7 +86,6 @@ static TEN_PLACEHOLDER_SCOPE ten_placeholder_scope_from_string(
   if (!strcmp(scope_str, TEN_STR_ENV)) {
     return TEN_PLACEHOLDER_SCOPE_ENV;
   } else {
-    TEN_ASSERT(0, "Should not happen.");
     return TEN_PLACEHOLDER_SCOPE_INVALID;
   }
 }
@@ -130,6 +129,11 @@ bool ten_placeholder_parse(ten_placeholder_t *self, const char *input,
   char *scope_end = strchr(content, TEN_STR_PLACEHOLDER_SCOPE_DELIMITER);
   if (!scope_end) {
     TEN_FREE(content);
+    if (err) {
+      ten_error_set(err, TEN_ERROR_CODE_GENERIC,
+                    "Invalid placeholder format: %s, missing scope delimiter.",
+                    input);
+    }
     return false;
   }
 
@@ -215,7 +219,6 @@ bool ten_placeholder_resolve(ten_placeholder_t *self,
         ten_error_set(err, TEN_ERROR_CODE_GENERIC,
                       "Unsupported placeholder scope: %d", self->scope);
       }
-      TEN_ASSERT(0, "Should not happen.");
       return false;
   }
 
